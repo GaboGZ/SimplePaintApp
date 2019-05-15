@@ -1,12 +1,13 @@
 package GUI;
 
 import javax.swing.*;
-import javax.swing.border.Border;
+import javax.swing.event.ChangeEvent;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.net.URL;
+import java.awt.Graphics;
 
 
 public class Window extends JFrame implements ActionListener,Runnable {
@@ -30,17 +31,16 @@ public class Window extends JFrame implements ActionListener,Runnable {
 
     private JToolBar toolBar;
 
-    private JButton btnPlot, btnLine, btnRectangle, btnEllipse, btnPolygon;
+    private JButton plotBtn, lineBtn, rectangleBtn, ellipseBtn, polygonBtn;
 
-    public JButton clearBtn, customBtn, blackBtn, blueBtn, greenBtn;
-    public JButton redBtn, magentaBtn, whiteBtn, grayBtn, orangeBtn, yellowBtn;
-    public JPanel colorsPanel;
+    public JButton penBtn, fillBtn, clearBtn, customBtn;
+    public JButton blackBtn, blueBtn, greenBtn, darkGrayBtn, lightGrayBtn;
+    public JButton cyanBtn, redBtn, magentaBtn, whiteBtn, grayBtn, orangeBtn, yellowBtn;
+    public JPanel colorPalette;
 
-    private JColorChooser colorChooser;
+    private JColorChooser colorPicker;
 
     private JFileChooser fileChooser;
-
-
 
     //Constructor
     /**
@@ -71,7 +71,7 @@ public class Window extends JFrame implements ActionListener,Runnable {
         createMenuBar();
         createMainPanel();  // main container.
         createToolbar();    //Drawing tools
-        createColorChooser();
+        createColorPalette();
         createFileChooser();
         //Status Bar todo
 
@@ -157,7 +157,7 @@ public class Window extends JFrame implements ActionListener,Runnable {
         pnlUp = createPanel(Color.RED, new BorderLayout());
 
         pnlUp_Up = createPanel(Color.RED, new BorderLayout());
-        pnlUp_Up_Up = createPanel(Color.BLUE);
+        pnlUp_Up_Up = createPanel(Color.WHITE);
         pnlUp_Up_Down = createPanel(Color.GREEN);
         pnlUp_Up.add(pnlUp_Up_Up, BorderLayout.NORTH);
         pnlUp_Up.add(pnlUp_Up_Down, BorderLayout.SOUTH);
@@ -195,44 +195,52 @@ public class Window extends JFrame implements ActionListener,Runnable {
 
     }
 
-    public void createColorChooser(){
+    public void createColorPalette(){
 
-        colorsPanel = new JPanel();
+        colorPalette = new JPanel();
 
         clearBtn = createButton("Clear");
         customBtn = createButton("Custom Color");
 
         blackBtn = createButton(Color.BLACK);
+        darkGrayBtn = createButton(Color.DARK_GRAY);
         grayBtn = createButton(Color.GRAY);
+        lightGrayBtn = createButton(Color.lightGray);
         whiteBtn = createButton(Color.WHITE);
         blueBtn = createButton(Color.BLUE);
+        cyanBtn = createButton(Color.CYAN);
         greenBtn = createButton(Color.GREEN);
         yellowBtn = createButton(Color.YELLOW);
         orangeBtn = createButton(Color.ORANGE);
         redBtn = createButton(Color.RED);
         magentaBtn = createButton(Color.MAGENTA);
 
-
         // add to panel
-        colorsPanel.add(blackBtn);
-        colorsPanel.add(grayBtn);
-        colorsPanel.add(whiteBtn);
-        colorsPanel.add(greenBtn);
-        colorsPanel.add(blueBtn);
-        colorsPanel.add(redBtn);
-        colorsPanel.add(magentaBtn);
-        colorsPanel.add(clearBtn);
-        colorsPanel.add(customBtn);
+        colorPalette.add(blackBtn);
+        colorPalette.add(darkGrayBtn);
+        colorPalette.add(grayBtn);
+        colorPalette.add(lightGrayBtn);
+        colorPalette.add(whiteBtn);
+        colorPalette.add(blueBtn);
+        colorPalette.add(cyanBtn);
+        colorPalette.add(greenBtn);
+        colorPalette.add(yellowBtn);
+        colorPalette.add(orangeBtn);
+        colorPalette.add(redBtn);
+        colorPalette.add(magentaBtn);
+        colorPalette.add(clearBtn);
+        colorPalette.add(customBtn);
 
         //todo: Custom color choose as pop-up window
-        colorChooser = new JColorChooser();
-        colorChooser.setPreferredSize(new Dimension(100,225));
-        colorChooser.setPreviewPanel(new JPanel()); //replaces the preview panel with a dimensionless panel
+        // May nod need this 3 lines as can be initialize on the event handler
+//        colorPicker = new JColorChooser();
+//        colorPicker.setPreferredSize(new Dimension(100,225));
+//        colorPicker.setPreviewPanel(new JPanel()); //replaces the preview panel with a dimensionless panel
 
         //add to parent panel
         //todo: be able to paint on drawing area
-//        pnlUp_Down.add(colorChooser, BorderLayout.SOUTH); //hidden until popup is implemented
-        pnlUp_Up_Down.add(colorsPanel,BorderLayout.SOUTH);
+//        pnlUp_Down.add(colorPicker, BorderLayout.SOUTH); //hidden until popup is implemented
+        pnlUp_Up_Down.add(colorPalette,BorderLayout.SOUTH);
     }
 
     //BEGIN HELPER METHODS | Note: todo Create an interface
@@ -347,28 +355,24 @@ public class Window extends JFrame implements ActionListener,Runnable {
         toolBar = new JToolBar();
         toolBar.setFloatable(false);    //fixed toolBar
         toolBar.setRollover(true);      //displays info when hovering
-//        toolBar.setOrientation(SwingConstants.VERTICAL);
 
         //Create ToolBar
-        btnPlot = createToolbarButton("plot-m","PLOT","Plot","Plot-Alt");
-        btnLine =  createToolbarButton("line-m","LINE","Line","Line-Alt");
-        btnRectangle =  createToolbarButton("rectangle-m","RECTANGLE","Rectangle","Rectangle-Alt");
-        btnEllipse =  createToolbarButton("elipse-m","ELIPSE","Elipse","Elipse-Alt");
-        btnPolygon =  createToolbarButton("polygon-m","POLYGON","Polygon","Polygon-Alt");
-
-        //Add Action Listeners
-        btnPlot.addActionListener(this);
-        btnEllipse.addActionListener(this);
-        btnRectangle.addActionListener(this);
-        btnEllipse.addActionListener(this);
-        btnPolygon.addActionListener(this);
+        penBtn = createToolbarButton("pen-s","PEN","Pen color","Pen-Alt");
+        fillBtn = createToolbarButton("fill-s","FILL","Fill color","Fill-Alt");
+        plotBtn = createToolbarButton("plot-s","PLOT","Plot","Plot-Alt");
+        lineBtn =  createToolbarButton("line-s","LINE","Line","Line-Alt");
+        rectangleBtn =  createToolbarButton("rectangle-s","RECTANGLE","Rectangle","Rectangle-Alt");
+        ellipseBtn =  createToolbarButton("elipse-s","ELIPSE","Elipse","Elipse-Alt");
+        polygonBtn =  createToolbarButton("polygon-s","POLYGON","Polygon","Polygon-Alt");
 
         //Add button to the toolbar
-        toolBar.add(btnPlot);
-        toolBar.add(btnLine);
-        toolBar.add(btnRectangle);
-        toolBar.add(btnEllipse);
-        toolBar.add(btnPolygon);
+        toolBar.add(penBtn);
+        toolBar.add(fillBtn);
+        toolBar.add(plotBtn);
+        toolBar.add(lineBtn);
+        toolBar.add(rectangleBtn);
+        toolBar.add(ellipseBtn);
+        toolBar.add(polygonBtn);
 //        toolBar.addSeparator();
         pnlUp_Up_Up.add(toolBar);
     }
@@ -415,41 +419,59 @@ public class Window extends JFrame implements ActionListener,Runnable {
             //todo: Close program.
             //Show dialog to save the file
         }
-        if(e.getSource() == btnPlot){
+        if(e.getSource() == plotBtn){
             System.out.println( "'Plot' was pressed. ");
             //todo: implement drawPlot();
         }
-        if( e.getSource() == btnLine) {
+        if( e.getSource() == lineBtn) {
             System.out.println( "'Line' was pressed. ");
             //todo: implement drawLine();
+
+
         }
-        if( e.getSource() == btnEllipse) {
+        if( e.getSource() == ellipseBtn) {
             System.out.println( "'Ellipse' was pressed. ");
             //todo: implement drawEllipse();
         }
-        if( e.getSource() == btnRectangle) {
+        if( e.getSource() == rectangleBtn) {
             System.out.println( "'Rectangle' was pressed. ");
             //todo: implement drawRectangle();
         }
-        if( e.getSource() == btnPolygon) {
+        if( e.getSource() == polygonBtn) {
             System.out.println( "'Polygon' was pressed. ");
             //todo: implement drawPolygon();
         }
-//        if (e.getSource() == clearBtn) {
-//            drawArea.clear();
-//        } else if (e.getSource() == blackBtn) {
-//            drawArea.black();
-//        } else if (e.getSource() == blueBtn) {
-//            drawArea.blue();
-//        } else if (e.getSource() == greenBtn) {
-//            drawArea.green();
-//        } else if (e.getSource() == redBtn) {
-//            drawArea.red();
-//        } else if (e.getSource() == magentaBtn) {
-//            drawArea.magenta();
-//        }
+            //todo: pallette handlers
+        if( e.getSource() == polygonBtn) {
+            System.out.println( "'Polygon' was pressed. ");
+            //todo: implement drawPolygon();
+        }
 
 
+
+        if( e.getSource() == blackBtn) {
+            // todo: penColor.setColor(blackBtn.getBackground());
+        }
+
+
+        if( e.getSource() == customBtn) {
+            // New modal color chooser
+            Color newColor = JColorChooser.showDialog(this, "Pick a color", this.getBackground());
+
+            // if a color is picked newColor is set to the color
+            // otherwise is set to null.
+            if (newColor != null) {
+                pnlDisplay.setBackground(newColor);
+            }
+        }
+        if( e.getSource() == clearBtn) {
+            pnlDisplay.setBackground(Color.WHITE);//Clear display panel
+        }
+    }
+
+    public void stateChanged(ChangeEvent e) {
+//        Color newColor = colorPicker.getColor();
+//        this.setForeground(newColor);
     }
 
     @Override
@@ -459,7 +481,7 @@ public class Window extends JFrame implements ActionListener,Runnable {
 
     public static void main(String[] args){
 
-        SwingUtilities.invokeLater(new Window("New Plotter"));
+        SwingUtilities.invokeLater(new Window("Vector Plotter"));
         // the .invokeLater(Runnable doRun) method run the doRun.run() methods on a
         // separate thread.
 
