@@ -12,7 +12,7 @@ import java.nio.file.NoSuchFileException;
 public class FileReader {
 
     Charset ch;
-    final String sourceFolder = "files/";
+    static final String sourceFolder = "files/";
     String sourceFile;
     String textFile;
 

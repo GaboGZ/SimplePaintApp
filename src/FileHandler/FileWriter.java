@@ -11,7 +11,7 @@ public class FileWriter {
     String str;
     byte data[];
     Path p;
-    final String sourceFolder = "files/";
+    static final String sourceFolder = "files/";
 
     public void writeToFile(String fileName, String text) {
         this.str = text;

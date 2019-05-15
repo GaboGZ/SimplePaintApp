@@ -66,7 +66,7 @@ public class Tests {
         fileReader = new FileReader();
 
         String text = "Test 02";
-        String file = "test-write.txt";
+        String file = "test-write2.txt";
         fileWriter.writeToFile(file,text);
 
         String actual = fileReader.readFile(file);
