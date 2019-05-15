@@ -5,6 +5,9 @@ import javax.swing.event.ChangeEvent;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.Line2D;
+import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.net.URL;
 import java.awt.Graphics;
@@ -23,7 +26,7 @@ public class Window extends JFrame implements ActionListener,Runnable {
     private JMenuItem New, Open, Save, SaveAs, Options, Close;
 
     public JPanel mainPanel;
-    private JPanel pnlUp, pnlUp_Up, pnlUp_Down, pnlUp_Up_Up, pnlUp_Up_Down;
+    private JPanel pnlUp, pnlUp_Up, pnlUp_Down, toolsPanel, palettePanel;
     private JPanel pnlLeft, pnlRight;
     private JPanel pnlDown, pnlDown_Up, pnlDown_Down;
     private JPanel pnlDisplay;
@@ -38,9 +41,11 @@ public class Window extends JFrame implements ActionListener,Runnable {
     public JButton cyanBtn, redBtn, magentaBtn, whiteBtn, grayBtn, orangeBtn, yellowBtn;
     public JPanel colorPalette;
 
-    private JColorChooser colorPicker;
-
     private JFileChooser fileChooser;
+
+    private String action = "PEN";
+    private Color penColor = Color.BLACK;
+    private Color fillColor = Color.BLACK;
 
     //Constructor
     /**
@@ -72,7 +77,6 @@ public class Window extends JFrame implements ActionListener,Runnable {
         createMainPanel();  // main container.
         createToolbar();    //Drawing tools
         createColorPalette();
-        createFileChooser();
         //Status Bar todo
 
 
@@ -98,6 +102,41 @@ public class Window extends JFrame implements ActionListener,Runnable {
         mainPanel.add(pnlRight, BorderLayout.EAST);
         mainPanel.add(pnlDown, BorderLayout.SOUTH);
         mainPanel.add(pnlDisplay,BorderLayout.CENTER);
+    }
+
+    /**
+     * Creates all the required panels
+     */
+    public void createChildPanels(){
+        // Upper Panels
+        pnlUp = createPanel(Color.RED, new BorderLayout());
+
+        pnlUp_Up = createPanel(Color.RED, new BorderLayout());
+        toolsPanel = createPanel(Color.WHITE);
+        palettePanel = createPanel(Color.GREEN);
+        pnlUp_Up.add(toolsPanel, BorderLayout.NORTH);
+        pnlUp_Up.add(palettePanel, BorderLayout.SOUTH);
+
+        pnlUp_Down = createPanel(Color.GRAY);
+        pnlUp.add(pnlUp_Up, BorderLayout.NORTH);
+        pnlUp.add(pnlUp_Down, BorderLayout.SOUTH);
+
+        // Side Panels
+        pnlLeft = createPanel(Color.GRAY);
+        pnlRight = createPanel(Color.GRAY);
+
+        // Button Panel
+        pnlDown = createPanel(Color.BLUE, new BorderLayout());
+        pnlDown_Up = createPanel(Color.GRAY);
+        pnlDown_Down = createPanel(Color.RED); //Status Bar Panel
+        pnlDown.add(pnlDown_Up,BorderLayout.NORTH);
+        pnlDown.add(pnlDown_Down, BorderLayout.SOUTH);
+
+        // Center Panel | Use to draw shapes
+        pnlDisplay = createPanel(Color.WHITE);
+        //todo: be able to paint on drawing area
+        pnlDisplay.add(new DrawStuff(),BorderLayout.CENTER);
+
     }
 
     private void createMenuBar() {
@@ -147,41 +186,11 @@ public class Window extends JFrame implements ActionListener,Runnable {
 
         //Add menu bar to the main window
         this.setJMenuBar(menuBar);
+
+        //Set up file chooser
+        createFileChooser();
     }
 
-    /**
-     * Creates all the required panels
-     */
-    public void createChildPanels(){
-        // Upper Panels
-        pnlUp = createPanel(Color.RED, new BorderLayout());
-
-        pnlUp_Up = createPanel(Color.RED, new BorderLayout());
-        pnlUp_Up_Up = createPanel(Color.WHITE);
-        pnlUp_Up_Down = createPanel(Color.GREEN);
-        pnlUp_Up.add(pnlUp_Up_Up, BorderLayout.NORTH);
-        pnlUp_Up.add(pnlUp_Up_Down, BorderLayout.SOUTH);
-
-        pnlUp_Down = createPanel(Color.GRAY);
-        pnlUp.add(pnlUp_Up, BorderLayout.NORTH);
-        pnlUp.add(pnlUp_Down, BorderLayout.SOUTH);
-
-        // Side Panels
-        pnlLeft = createPanel(Color.GRAY);
-        pnlRight = createPanel(Color.GRAY);
-
-        // Button Panel
-        pnlDown = createPanel(Color.BLUE, new BorderLayout());
-        pnlDown_Up = createPanel(Color.GRAY);
-        pnlDown_Down = createPanel(Color.RED); //Status Bar Panel
-        pnlDown.add(pnlDown_Up,BorderLayout.NORTH);
-        pnlDown.add(pnlDown_Down, BorderLayout.SOUTH);
-
-        // Center Panel | Use to draw shapes
-        pnlDisplay = createPanel(Color.WHITE);
-//        drawArea = new DrawArea();
-//        pnlDisplay.add(drawArea);
-    }
 
     public void createFileChooser(){
 
@@ -191,8 +200,6 @@ public class Window extends JFrame implements ActionListener,Runnable {
         //Create filtered view
         fileChooser.addChoosableFileFilter(new FileVecFilter());
         fileChooser.setAcceptAllFileFilterUsed(false);
-
-
     }
 
     public void createColorPalette(){
@@ -202,18 +209,18 @@ public class Window extends JFrame implements ActionListener,Runnable {
         clearBtn = createButton("Clear");
         customBtn = createButton("Custom Color");
 
-        blackBtn = createButton(Color.BLACK);
-        darkGrayBtn = createButton(Color.DARK_GRAY);
-        grayBtn = createButton(Color.GRAY);
-        lightGrayBtn = createButton(Color.lightGray);
-        whiteBtn = createButton(Color.WHITE);
-        blueBtn = createButton(Color.BLUE);
-        cyanBtn = createButton(Color.CYAN);
-        greenBtn = createButton(Color.GREEN);
-        yellowBtn = createButton(Color.YELLOW);
-        orangeBtn = createButton(Color.ORANGE);
-        redBtn = createButton(Color.RED);
-        magentaBtn = createButton(Color.MAGENTA);
+        blackBtn = createColorButton(Color.BLACK);
+        darkGrayBtn = createColorButton(Color.DARK_GRAY);
+        grayBtn = createColorButton(Color.GRAY);
+        lightGrayBtn = createColorButton(Color.lightGray);
+        whiteBtn = createColorButton(Color.WHITE);
+        blueBtn = createColorButton(Color.BLUE);
+        cyanBtn = createColorButton(Color.CYAN);
+        greenBtn = createColorButton(Color.GREEN);
+        yellowBtn = createColorButton(Color.YELLOW);
+        orangeBtn = createColorButton(Color.ORANGE);
+        redBtn = createColorButton(Color.RED);
+        magentaBtn = createColorButton(Color.MAGENTA);
 
         // add to panel
         colorPalette.add(blackBtn);
@@ -231,16 +238,7 @@ public class Window extends JFrame implements ActionListener,Runnable {
         colorPalette.add(clearBtn);
         colorPalette.add(customBtn);
 
-        //todo: Custom color choose as pop-up window
-        // May nod need this 3 lines as can be initialize on the event handler
-//        colorPicker = new JColorChooser();
-//        colorPicker.setPreferredSize(new Dimension(100,225));
-//        colorPicker.setPreviewPanel(new JPanel()); //replaces the preview panel with a dimensionless panel
-
-        //add to parent panel
-        //todo: be able to paint on drawing area
-//        pnlUp_Down.add(colorPicker, BorderLayout.SOUTH); //hidden until popup is implemented
-        pnlUp_Up_Down.add(colorPalette,BorderLayout.SOUTH);
+        palettePanel.add(colorPalette,BorderLayout.SOUTH);
     }
 
     //BEGIN HELPER METHODS | Note: todo Create an interface
@@ -290,14 +288,39 @@ public class Window extends JFrame implements ActionListener,Runnable {
         //(2) Set the button text to that passed in str
         button.setText(str);
 
-        //(3) Add the frame as an actionListener
-        button.addActionListener(this);
+        //(3) Add actionListener
+        button.addActionListener(new ActionListener() {
+
+            public void actionPerformed(ActionEvent e) {
+
+//                if(stroke){
+//                    //JColorChooser is a popup that lets you pick a color
+//                    strokeColor = JColorChooser.showDialog(null,  "Pick a Stroke", Color.BLACK);
+//                } else {
+//                    fillColor = JColorChooser.showDialog(null,  "Pick a Fill", Color.BLACK);
+//                }
+                if( e.getSource() == customBtn) {
+                    // New modal color chooser
+                    Color newColor = JColorChooser.showDialog(mainPanel, "Pick a color", mainPanel.getBackground());
+
+                    // if a color is picked newColor is set to the color
+                    // otherwise is set to null.
+                    if (newColor != null) {
+                        pnlDisplay.setBackground(newColor);
+                    }
+                }
+                if( e.getSource() == clearBtn) {
+                    pnlDisplay.setBackground(Color.WHITE);//Clear display panel
+                }
+
+            }
+        });
 
         //(4) Return the JButton object
         return button;
     }
 
-    private JButton createButton(Color c){
+    private JButton createColorButton(Color c){
         //(1) Create a JButton object and store it in a local var
         JButton button = new JButton();
         button.setPreferredSize(new Dimension(25,25));
@@ -306,8 +329,19 @@ public class Window extends JFrame implements ActionListener,Runnable {
         //button.setText(str);
         button.setBackground(c);
 
-        //(3) Add the frame as an actionListener
-        button.addActionListener(this);
+        //(3) Add an actionListener
+        button.addActionListener(new ActionListener() {
+
+            public void actionPerformed(ActionEvent e) {
+
+
+                if( e.getSource() == blackBtn) {
+                    penColor = blackBtn.getBackground();
+                    pnlDisplay.setBackground(penColor);
+                }
+
+            }
+        });
 
         //(4) Return the JButton object
         return button;
@@ -335,7 +369,8 @@ public class Window extends JFrame implements ActionListener,Runnable {
         JButton button = new JButton();
         button.setActionCommand(actionCommand);
         button.setToolTipText(toolTipText);
-        button.addActionListener(this);
+
+
 
         if (imageURL != null) { //image found
             button.setIcon(new ImageIcon(imageURL, altText));
@@ -344,6 +379,16 @@ public class Window extends JFrame implements ActionListener,Runnable {
             System.err.println("Imagen not found: "
                     + imgLocation);
         }
+
+        //Add listener and event handlers
+        button.addActionListener(new ActionListener() {
+
+            public void actionPerformed(ActionEvent e) {
+                action = actionCommand;
+                System.out.println("Current Command: " + actionCommand);
+
+            }
+        });
 
         return button;
     }
@@ -362,7 +407,7 @@ public class Window extends JFrame implements ActionListener,Runnable {
         plotBtn = createToolbarButton("plot-s","PLOT","Plot","Plot-Alt");
         lineBtn =  createToolbarButton("line-s","LINE","Line","Line-Alt");
         rectangleBtn =  createToolbarButton("rectangle-s","RECTANGLE","Rectangle","Rectangle-Alt");
-        ellipseBtn =  createToolbarButton("elipse-s","ELIPSE","Elipse","Elipse-Alt");
+        ellipseBtn =  createToolbarButton("ellipse-s","ELLIPSE","Ellipse","Ellipse-Alt");
         polygonBtn =  createToolbarButton("polygon-s","POLYGON","Polygon","Polygon-Alt");
 
         //Add button to the toolbar
@@ -374,7 +419,34 @@ public class Window extends JFrame implements ActionListener,Runnable {
         toolBar.add(ellipseBtn);
         toolBar.add(polygonBtn);
 //        toolBar.addSeparator();
-        pnlUp_Up_Up.add(toolBar);
+        toolsPanel.add(toolBar);
+    }
+
+
+    private class DrawStuff extends JComponent{
+
+        /** Base class that allows to draw on display area.
+         *
+         * @param g
+         */
+        public void paint(Graphics g){
+
+            Graphics2D g2 = (Graphics2D)g;
+            // Clean up edges
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
+
+            Shape drawLine = new Line2D.Float(120,190,155,250);
+
+            Shape drawRec = new Rectangle2D.Float(20, 20, 20, 20);
+
+            Shape drawEllipse = new Ellipse2D.Float(100,100,100,100);
+
+            g2.setPaint(Color.BLACK);
+
+            g2.draw(drawLine);
+            g2.draw(drawRec);
+            g2.draw(drawEllipse);
+        }
     }
 
     //END HELPER METHODS
@@ -445,27 +517,6 @@ public class Window extends JFrame implements ActionListener,Runnable {
         if( e.getSource() == polygonBtn) {
             System.out.println( "'Polygon' was pressed. ");
             //todo: implement drawPolygon();
-        }
-
-
-
-        if( e.getSource() == blackBtn) {
-            // todo: penColor.setColor(blackBtn.getBackground());
-        }
-
-
-        if( e.getSource() == customBtn) {
-            // New modal color chooser
-            Color newColor = JColorChooser.showDialog(this, "Pick a color", this.getBackground());
-
-            // if a color is picked newColor is set to the color
-            // otherwise is set to null.
-            if (newColor != null) {
-                pnlDisplay.setBackground(newColor);
-            }
-        }
-        if( e.getSource() == clearBtn) {
-            pnlDisplay.setBackground(Color.WHITE);//Clear display panel
         }
     }
 
