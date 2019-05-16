@@ -1,16 +1,17 @@
 package GUI;
 
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
+import javax.swing.border.Border;
+import javax.swing.border.EtchedBorder;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
-import java.io.File;
 import java.net.URL;
-import java.awt.Graphics;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 
 public class Window extends JFrame implements ActionListener,Runnable {
@@ -29,7 +30,7 @@ public class Window extends JFrame implements ActionListener,Runnable {
     private JPanel pnlUp, pnlUp_Up, pnlUp_Down, toolsPanel, palettePanel;
     private JPanel pnlLeft, pnlRight;
     private JPanel pnlDown, pnlDown_Up, pnlDown_Down;
-    private JPanel pnlDisplay;
+    private JComponent pnlDisplay;
 //    private DrawArea drawArea;
 
     private JToolBar toolBar;
@@ -43,29 +44,48 @@ public class Window extends JFrame implements ActionListener,Runnable {
 
     private JFileChooser fileChooser;
 
-    private String action = "PEN";
-    private Color penColor = Color.BLACK;
-    private Color fillColor = Color.BLACK;
+    JPanel statusBar;
+    JLabel coor, comSelected, zoom;
 
-    //Constructor
+    private String currentAction = "No command selected";
+    private Color penColor = Color.BLUE;
+    private Color fillColor = Color.WHITE;
+    boolean penClicked = false;
+    boolean fillClicked = false;
+
+
+
+
+    public static void main(String[] args){
+
+        SwingUtilities.invokeLater(new Window());
+        // the .invokeLater(Runnable doRun) method run the doRun.run() methods on a
+        // separate thread.
+
+    }
+
+    @Override
+    public void run() {
+        createAndDisplayGUI();
+    }
+
     /**
-     * Constructs the main window by creating a JFrame
-     * @param str
-     * @see JFrame
+     * Constructs the main window by using a JFrame
      */
-    public Window(String str){
+    public Window(){
 
         //Set default look and feel
         JFrame.setDefaultLookAndFeelDecorated(true);
 
         //Create window
-        JFrame Window = new JFrame(str);
+        JFrame Window = new JFrame();
+        Window.setTitle("CAB302 | Java Project");
 
-        //Set action when window is closed
+        //Set currentAction when window is closed
         Window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
 
-    /*  Methods */
+
     private void createAndDisplayGUI(){
 
         //Set GUI
@@ -73,15 +93,16 @@ public class Window extends JFrame implements ActionListener,Runnable {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
+        //Add components
         createMenuBar();
-        createMainPanel();  // main container.
-        createToolbar();    //Drawing tools
+        createMainPanel();      // main container.
+        createToolbar();        //Drawing tools
         createColorPalette();
-        //Status Bar todo
+        createStatusBar();
 
 
         //Add main panel to the main frame
-        this.getContentPane().add(mainPanel,BorderLayout.CENTER);
+        this.getContentPane().add(mainPanel);
 
         //Display the window
         repaint();
@@ -95,13 +116,6 @@ public class Window extends JFrame implements ActionListener,Runnable {
         mainPanel = createPanel(Color.WHITE, new BorderLayout());
         // Child Panels
         createChildPanels();
-
-        //Add child panels to the Main Panel
-        mainPanel.add(pnlUp, BorderLayout.NORTH);
-        mainPanel.add(pnlLeft, BorderLayout.WEST);
-        mainPanel.add(pnlRight, BorderLayout.EAST);
-        mainPanel.add(pnlDown, BorderLayout.SOUTH);
-        mainPanel.add(pnlDisplay,BorderLayout.CENTER);
     }
 
     /**
@@ -109,11 +123,11 @@ public class Window extends JFrame implements ActionListener,Runnable {
      */
     public void createChildPanels(){
         // Upper Panels
-        pnlUp = createPanel(Color.RED, new BorderLayout());
+        pnlUp = createPanel(Color.WHITE, new BorderLayout());
 
-        pnlUp_Up = createPanel(Color.RED, new BorderLayout());
+        pnlUp_Up = createPanel(Color.WHITE, new BorderLayout());
         toolsPanel = createPanel(Color.WHITE);
-        palettePanel = createPanel(Color.GREEN);
+        palettePanel = createPanel(Color.WHITE);
         pnlUp_Up.add(toolsPanel, BorderLayout.NORTH);
         pnlUp_Up.add(palettePanel, BorderLayout.SOUTH);
 
@@ -126,16 +140,21 @@ public class Window extends JFrame implements ActionListener,Runnable {
         pnlRight = createPanel(Color.GRAY);
 
         // Button Panel
-        pnlDown = createPanel(Color.BLUE, new BorderLayout());
+        pnlDown = createPanel(Color.GRAY, new BorderLayout());
         pnlDown_Up = createPanel(Color.GRAY);
-        pnlDown_Down = createPanel(Color.RED); //Status Bar Panel
+        pnlDown_Down = createPanel(Color.WHITE, new BorderLayout()); //Status Bar Panel
         pnlDown.add(pnlDown_Up,BorderLayout.NORTH);
         pnlDown.add(pnlDown_Down, BorderLayout.SOUTH);
 
-        // Center Panel | Use to draw shapes
-        pnlDisplay = createPanel(Color.WHITE);
-        //todo: be able to paint on drawing area
-        pnlDisplay.add(new DrawStuff(),BorderLayout.CENTER);
+        pnlDisplay = new Canvas(); // Center Panel | Use to draw shapes
+
+
+        //Add child panels to the Main Panel
+        mainPanel.add(pnlUp, BorderLayout.NORTH);
+        mainPanel.add(pnlLeft, BorderLayout.WEST);
+        mainPanel.add(pnlRight, BorderLayout.EAST);
+        mainPanel.add(pnlDown, BorderLayout.SOUTH);
+        mainPanel.add(pnlDisplay,BorderLayout.CENTER);
 
     }
 
@@ -157,7 +176,7 @@ public class Window extends JFrame implements ActionListener,Runnable {
         Options = new JMenuItem("Options");
         Close = new JMenuItem("Close");
 
-        //Add Listeners
+        //Add Listeners //todo: can I implement listeners here?
         New.addActionListener(this);
         Open.addActionListener(this);
         Save.addActionListener(this);
@@ -206,8 +225,8 @@ public class Window extends JFrame implements ActionListener,Runnable {
 
         colorPalette = new JPanel();
 
-        clearBtn = createButton("Clear");
-        customBtn = createButton("Custom Color");
+        clearBtn = createButton("clear-s","CLEAR","Clear","Clear-Alt");
+        customBtn = createButton("custom-s","CUSTOM","Custom Color","Custom-Alt");
 
         blackBtn = createColorButton(Color.BLACK);
         darkGrayBtn = createColorButton(Color.DARK_GRAY);
@@ -241,6 +260,33 @@ public class Window extends JFrame implements ActionListener,Runnable {
         palettePanel.add(colorPalette,BorderLayout.SOUTH);
     }
 
+
+    public void createStatusBar(){
+
+        statusBar = createPanel(Color.WHITE, new BorderLayout());
+        statusBar.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
+
+        coor = new JLabel();
+        coor.setText("(x,y) = ");
+
+        comSelected = new JLabel();
+        comSelected.setText("Current Command: " + currentAction);
+        comSelected.setHorizontalTextPosition(SwingConstants.CENTER);
+
+        zoom = new JLabel();
+        zoom.setText("Zoom: 100%");
+        zoom.setBackground(Color.WHITE);
+
+        statusBar.add(coor, BorderLayout.WEST);
+//        statusBar.add(new JSeparator(SwingConstants.VERTICAL));
+        statusBar.add(comSelected,BorderLayout.CENTER);
+//        statusBar.add(new JSeparator(SwingConstants.VERTICAL));
+        statusBar.add(zoom, BorderLayout.EAST);
+
+        pnlDown_Down.add(statusBar);
+
+    }
+
     //BEGIN HELPER METHODS | Note: todo Create an interface
 
     /**
@@ -249,14 +295,8 @@ public class Window extends JFrame implements ActionListener,Runnable {
      * @return
      */
     private JPanel createPanel(Color c){
-
-        //(1) Create a JPanel object and store it in a local var
         JPanel panel = new JPanel();
-
-        //(2) Set the background colour to that passed in c
         panel.setBackground(c);
-
-        //(3) Return the JPanel object
         return panel;
     }
 
@@ -267,79 +307,59 @@ public class Window extends JFrame implements ActionListener,Runnable {
      * @return
      */
     private JPanel createPanel(Color c, LayoutManager layout){
-
-        //(1) Create a JPanel object and store it in a local var
         JPanel panel = new JPanel();
-
-        //(2) Set the background colour to that passed in c
         panel.setBackground(c);
-
-        //(3) Set layout manager
         panel.setLayout(layout);
-        //(4) Return the JPanel object
         return panel;
     }
 
-
-    private JButton createButton(String str) {
-        //(1) Create a JButton object and store it in a local var
-        JButton button = new JButton();
-
-        //(2) Set the button text to that passed in str
-        button.setText(str);
-
-        //(3) Add actionListener
-        button.addActionListener(new ActionListener() {
-
-            public void actionPerformed(ActionEvent e) {
-
-//                if(stroke){
-//                    //JColorChooser is a popup that lets you pick a color
-//                    strokeColor = JColorChooser.showDialog(null,  "Pick a Stroke", Color.BLACK);
-//                } else {
-//                    fillColor = JColorChooser.showDialog(null,  "Pick a Fill", Color.BLACK);
-//                }
-                if( e.getSource() == customBtn) {
-                    // New modal color chooser
-                    Color newColor = JColorChooser.showDialog(mainPanel, "Pick a color", mainPanel.getBackground());
-
-                    // if a color is picked newColor is set to the color
-                    // otherwise is set to null.
-                    if (newColor != null) {
-                        pnlDisplay.setBackground(newColor);
-                    }
-                }
-                if( e.getSource() == clearBtn) {
-                    pnlDisplay.setBackground(Color.WHITE);//Clear display panel
-                }
-
-            }
-        });
-
-        //(4) Return the JButton object
-        return button;
-    }
-
-    private JButton createColorButton(Color c){
-        //(1) Create a JButton object and store it in a local var
+    /**
+     * Create buttons for the color palette
+     * @param color
+     * @return a colored button
+     */
+    private JButton createColorButton(Color color){
         JButton button = new JButton();
         button.setPreferredSize(new Dimension(25,25));
+        button.setBackground(color);
 
-        //(2) Set the button text to that passed in str
-        //button.setText(str);
-        button.setBackground(c);
-
-        //(3) Add an actionListener
         button.addActionListener(new ActionListener() {
 
             public void actionPerformed(ActionEvent e) {
 
+                if(e.getSource() == blackBtn) {
 
-                if( e.getSource() == blackBtn) {
-                    penColor = blackBtn.getBackground();
-                    pnlDisplay.setBackground(penColor);
+                    if(penClicked){
+                        penColor = Color.BLACK;
+                    }else if(fillClicked){
+                        fillColor =Color.BLACK;
+                    }else{
+                        penColor = Color.BLACK;
+                    }
+                }else if( e.getSource() == darkGrayBtn){
+                    penColor = darkGrayBtn.getBackground();
+                }else if( e.getSource() == grayBtn){
+                        penColor = grayBtn.getBackground();
+                }else if( e.getSource() == lightGrayBtn) {
+                    penColor = lightGrayBtn.getBackground();
+                }else if( e.getSource() == whiteBtn){
+                    penColor = whiteBtn.getBackground();
+                }else if( e.getSource() == blueBtn){
+                    penColor = blueBtn.getBackground();
+                }else if( e.getSource() == cyanBtn) {
+                    penColor = cyanBtn.getBackground();
+                }else if( e.getSource() == greenBtn){
+                    penColor = greenBtn.getBackground();
+                }else if( e.getSource() == yellowBtn){
+                    penColor = yellowBtn.getBackground();
+                }else if(e.getSource() == orangeBtn){
+                    penColor = orangeBtn.getBackground();
+                }else if( e.getSource() == redBtn){
+                    penColor = redBtn.getBackground();
+                }else if(e.getSource() == magentaBtn) {
+                    penColor = magentaBtn.getBackground();
                 }
-
+//                else{}
             }
         });
 
@@ -348,17 +368,16 @@ public class Window extends JFrame implements ActionListener,Runnable {
     }
 
     /**
-     * Creates a button to be used by the Toolbar
      * @param imageName name for the image file. Not file extension needed.
      * @param actionCommand Command to call a drawing method.
      * @param toolTipText Text display when hovering.
      * @param altText Text displayed if no image is found.
      * @return JButton
      */
-    private JButton createToolbarButton(String imageName,
-                                        String actionCommand,
-                                        String toolTipText,
-                                        String altText) {
+    private JButton createButton(String imageName,
+                                 String actionCommand,
+                                 String toolTipText,
+                                 String altText) {
         //Look for the image.
         String imgLocation = "images/"
                 + imageName
@@ -382,11 +401,49 @@ public class Window extends JFrame implements ActionListener,Runnable {
 
         //Add listener and event handlers
         button.addActionListener(new ActionListener() {
-
+            @Override
             public void actionPerformed(ActionEvent e) {
-                action = actionCommand;
-                System.out.println("Current Command: " + actionCommand);
 
+                currentAction = actionCommand;
+                comSelected.setText("Command: " + currentAction);
+
+                System.out.println("Current Command: " + currentAction);
+
+//                if(stroke){
+//                    //JColorChooser is a popup that lets you pick a color
+//                    strokeColor = JColorChooser.showDialog(null,  "Pick a Stroke", Color.BLACK);
+//                } else {
+//                    fillColor = JColorChooser.showDialog(null,  "Pick a Fill", Color.BLACK);
+//                }
+//                if( e.getSource() == customBtn) {
+                  if( currentAction == "CUSTOM"){
+                    // New modal color chooser
+                    Color newColor = JColorChooser.showDialog(mainPanel, "Pick a color", mainPanel.getBackground());
+
+                    // if a color is picked newColor is set to the color
+                    // otherwise is set to null.
+                    if (newColor != null) {
+                        pnlDisplay.setBackground(newColor);
+                    }
+                }
+//                if( e.getSource() == clearBtn) {
+                  if( currentAction == "CLEAR"){
+                    pnlDisplay.setForeground(Color.WHITE);//Clear display panel
+
+                }
+
+                if( e.getSource() == penBtn){
+                    penClicked = true;
+                    fillClicked = false;
+                    System.out.println("Pen status: "+ penClicked);
+                    System.out.println("Fill status: "+fillClicked);
+                }
+                if (e.getSource() == fillBtn){
+                    penClicked = false;
+                    fillClicked = true;
+                    System.out.println("Pen status: "+ penClicked);
+                    System.out.println("Fill status: "+fillClicked);
+                }
             }
         });
 
@@ -402,13 +459,13 @@ public class Window extends JFrame implements ActionListener,Runnable {
         toolBar.setRollover(true);      //displays info when hovering
 
         //Create ToolBar
-        penBtn = createToolbarButton("pen-s","PEN","Pen color","Pen-Alt");
-        fillBtn = createToolbarButton("fill-s","FILL","Fill color","Fill-Alt");
-        plotBtn = createToolbarButton("plot-s","PLOT","Plot","Plot-Alt");
-        lineBtn =  createToolbarButton("line-s","LINE","Line","Line-Alt");
-        rectangleBtn =  createToolbarButton("rectangle-s","RECTANGLE","Rectangle","Rectangle-Alt");
-        ellipseBtn =  createToolbarButton("ellipse-s","ELLIPSE","Ellipse","Ellipse-Alt");
-        polygonBtn =  createToolbarButton("polygon-s","POLYGON","Polygon","Polygon-Alt");
+        penBtn = createButton("pen-s","PEN","Pen color","Pen-Alt");
+        fillBtn = createButton("fill-s","FILL","Fill color","Fill-Alt");
+        plotBtn = createButton("plot-s","PLOT","Plot","Plot-Alt");
+        lineBtn =  createButton("line-s","LINE","Line","Line-Alt");
+        rectangleBtn =  createButton("rectangle-s","RECTANGLE","Rectangle","Rectangle-Alt");
+        ellipseBtn =  createButton("ellipse-s","ELLIPSE","Ellipse","Ellipse-Alt");
+        polygonBtn =  createButton("polygon-s","POLYGON","Polygon","Polygon-Alt");
 
         //Add button to the toolbar
         toolBar.add(penBtn);
@@ -418,36 +475,9 @@ public class Window extends JFrame implements ActionListener,Runnable {
         toolBar.add(rectangleBtn);
         toolBar.add(ellipseBtn);
         toolBar.add(polygonBtn);
-//        toolBar.addSeparator();
         toolsPanel.add(toolBar);
     }
 
-
-    private class DrawStuff extends JComponent{
-
-        /** Base class that allows to draw on display area.
-         *
-         * @param g
-         */
-        public void paint(Graphics g){
-
-            Graphics2D g2 = (Graphics2D)g;
-            // Clean up edges
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
-
-            Shape drawLine = new Line2D.Float(120,190,155,250);
-
-            Shape drawRec = new Rectangle2D.Float(20, 20, 20, 20);
-
-            Shape drawEllipse = new Ellipse2D.Float(100,100,100,100);
-
-            g2.setPaint(Color.BLACK);
-
-            g2.draw(drawLine);
-            g2.draw(drawRec);
-            g2.draw(drawEllipse);
-        }
-    }
 
     //END HELPER METHODS
 
@@ -491,50 +521,189 @@ public class Window extends JFrame implements ActionListener,Runnable {
             //todo: Close program.
             //Show dialog to save the file
         }
-        if(e.getSource() == plotBtn){
-            System.out.println( "'Plot' was pressed. ");
-            //todo: implement drawPlot();
-        }
-        if( e.getSource() == lineBtn) {
-            System.out.println( "'Line' was pressed. ");
-            //todo: implement drawLine();
-
-
-        }
-        if( e.getSource() == ellipseBtn) {
-            System.out.println( "'Ellipse' was pressed. ");
-            //todo: implement drawEllipse();
-        }
-        if( e.getSource() == rectangleBtn) {
-            System.out.println( "'Rectangle' was pressed. ");
-            //todo: implement drawRectangle();
-        }
-        if( e.getSource() == polygonBtn) {
-            System.out.println( "'Polygon' was pressed. ");
-            //todo: implement drawPolygon();
-        }
-            //todo: pallette handlers
-        if( e.getSource() == polygonBtn) {
-            System.out.println( "'Polygon' was pressed. ");
-            //todo: implement drawPolygon();
-        }
     }
 
-    public void stateChanged(ChangeEvent e) {
-//        Color newColor = colorPicker.getColor();
-//        this.setForeground(newColor);
+    private class Canvas extends JComponent {
+
+        // ArrayLists that contain each shape drawn along with
+        // that shapes stroke and fill
+
+        ArrayList<Shape> shapes = new ArrayList<Shape>();
+        ArrayList<Color> shapeFill = new ArrayList<Color>();
+        ArrayList<Color> shapeStroke = new ArrayList<Color>();
+        Point drawStart, drawEnd;
+
+        /**
+         * Creates a Canvas for the display panel.
+         * Adds a MouseListener to detect mouse events.
+         */
+        public Canvas() {
+            this.addMouseListener(new MouseAdapter() {
+
+                /**
+                 * Gets coordinates when mouse is pressed.
+                 * @param e
+                 */
+                public void mousePressed(MouseEvent e) {
+                    drawStart = new Point(e.getX(), e.getY());
+                    drawEnd = drawStart;
+                    repaint();
+                }
+
+                /**
+                 * Gets coordinates when mouse is released.
+                 * @param e
+                 */
+                public void mouseReleased(MouseEvent e) {
+
+                    // Creates a shape based on the current currentAction command
+
+                    if ( currentAction == "LINE"){
+//                        Shape line = drawLine(drawStart.x, drawStart.y, e.getX(), e.getY());
+                        Shape line = defineShape("LINE",drawStart.x, drawStart.y, e.getX(), e.getY());
+                        shapes.add(line);
+                    }else if ( currentAction == "RECTANGLE"){
+                        Shape rect = defineShape("RECTANGLE",drawStart.x, drawStart.y, e.getX(), e.getY());
+                        shapes.add(rect);
+                    }else if (currentAction == "ELLIPSE"){
+                        Shape ellipse = defineShape("ELLIPSE",drawStart.x, drawStart.y, e.getX(), e.getY());
+                        shapes.add(ellipse);
+                    }else if ( currentAction == "PLOT"){
+                        Shape plot = defineShape("PLOT",drawStart.x, drawStart.y, e.getX(), e.getY());
+                        shapes.add(plot);
+                    }
+
+                    // Add shapes, fills and colors to there ArrayLists
+                    shapeFill.add(fillColor);
+                    shapeStroke.add(penColor);
+                    drawStart = null;
+                    drawEnd = null;
+
+                    repaint(); // IMPORTANT! -> repaint the drawing area
+                }
+            });
+
+            /**
+             * Gets coordinates when mouse is dragged.
+             */
+            this.addMouseMotionListener(new MouseMotionAdapter() {
+                public void mouseDragged(MouseEvent e) {
+                    drawEnd = new Point(e.getX(), e.getY());
+                    coor.setText("(x,y): " + e.getX() +", "+ e.getY() + "      ");
+                    repaint();
+                }
+            });
+
+        }// end Canvas constructor
+
+        public void paint(Graphics g){
+
+            // Class used to define the shapes to be drawn
+            Graphics2D graphSettings = (Graphics2D)g;
+
+            // Antialiasing cleans up the jagged lines and defines rendering rules
+            graphSettings.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                    RenderingHints.VALUE_ANTIALIAS_ON);
+
+            // Defines the line width of the stroke
+            graphSettings.setStroke(new BasicStroke(3));
+
+            // Iterators created to cycle through strokes and fills
+            Iterator<Color> strokeCounter = shapeStroke.iterator();
+            Iterator<Color> fillCounter = shapeFill.iterator();
+
+            // Eliminates transparent setting below
+            graphSettings.setComposite(AlphaComposite.getInstance(
+                    AlphaComposite.SRC_OVER, 1.0f));
+
+            for (Shape s : shapes) {
+
+                // Grabs the next stroke from the color ArrayList
+                graphSettings.setPaint(strokeCounter.next());
+                graphSettings.draw(s);
+
+                // Grabs the next fill from the color ArrayList
+                graphSettings.setPaint(fillCounter.next());
+                graphSettings.fill(s);
+            }
+
+            // Guide shape used for drawing
+            if (drawStart != null && drawEnd != null) {
+                // Transparent guide shape
+                graphSettings.setComposite(AlphaComposite.getInstance(
+                        AlphaComposite.SRC_OVER, 0.40f));
+
+                graphSettings.setPaint(Color.LIGHT_GRAY);
+
+                //Initial shape
+//                Shape aShape = drawRectangle(drawStart.x, drawStart.y,
+//                        drawEnd.x, drawEnd.y);
+
+                // Create new shape base on current command
+                Shape shape = defineShape(currentAction,drawStart.x, drawStart.y, drawEnd.x, drawEnd.y);
+                graphSettings.draw(shape);
+            }
+        }
+
+        /**
+         * Returns a shape based on the current command action.
+         * @param action
+         * @return
+         */
+        private Shape defineShape(String action, int x1,int y1, int x2, int y2){
+
+            Shape s = drawRectangle(x1, y1, x2, y2);
+
+            if ( action == "LINE"){
+                s = drawLine(x1, y1, x2, y2);
+            }else if (action == "ELLIPSE"){
+                s = drawEllipse(x1, y1, x2, y2);
+            }else if( action == "PLOT"){
+                s = drawPlot(x1, y1, x2, y2);
+            }else if (action == "RECTANGLE"){
+                s = drawRectangle(x1, y1, x2, y2);
+            }
+
+            return s;
+        }
+
+    }//end Canvas Class
+
+
+
+
+    private Rectangle2D.Float drawRectangle(int x1, int y1, int x2, int y2) {
+        // Get the top left hand corner for the shape
+        // Math.min returns the points closest to 0
+
+        int x = Math.min(x1, x2);
+        int y = Math.min(y1, y2);
+
+        // Gets the difference between the coordinates and
+
+        int width = Math.abs(x1 - x2);
+        int height = Math.abs(y1 - y2);
+
+        return new Rectangle2D.Float(
+                x, y, width, height);
     }
 
-    @Override
-    public void run() {
-        createAndDisplayGUI();
+    private Ellipse2D.Float drawEllipse(int x1, int y1, int x2, int y2) {
+        int x = Math.min(x1, x2);
+        int y = Math.min(y1, y2);
+        int width = Math.abs(x1 - x2);
+        int height = Math.abs(y1 - y2);
+
+        return new Ellipse2D.Float(x, y, width, height);
     }
 
-    public static void main(String[] args){
-
-        SwingUtilities.invokeLater(new Window("Vector Plotter"));
-        // the .invokeLater(Runnable doRun) method run the doRun.run() methods on a
-        // separate thread.
-
+    private Line2D.Float drawLine(int x1, int y1, int x2, int y2){
+        return new Line2D.Float(x1,y1,x2,y2);
     }
+
+    private Line2D.Float drawPlot(int x1, int y1, int x2, int y2){
+        return new Line2D.Float(x1,y1,x1,y1);
+    }
+
+    // todo: Polygon
 }
