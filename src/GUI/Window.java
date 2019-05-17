@@ -48,7 +48,11 @@ public class Window extends JFrame implements ActionListener,Runnable {
     JLabel coor, comSelected, zoom;
 
     private String currentAction = "No command selected";
-    private Color penColor = Color.BLUE;
+    private JButton currentPenColor;
+    private JLabel currentPenColorLabel;
+    private JButton currentFillColor;
+    private JLabel currentFillColorLabel;
+    private Color penColor = Color.BLACK;
     private Color fillColor = Color.WHITE;
     boolean penClicked = false;
     boolean fillClicked = false;
@@ -221,12 +225,48 @@ public class Window extends JFrame implements ActionListener,Runnable {
         fileChooser.setAcceptAllFileFilterUsed(false);
     }
 
+    /**
+     * Creates a Toolbar containing the drawing buttons.
+     */
+    private void createToolbar(){
+        toolBar = new JToolBar();
+        toolBar.setFloatable(false);    //fixed toolBar
+        toolBar.setRollover(true);      //displays info when hovering
+
+        //Create ToolBar
+        clearBtn = createButton("clear-s","CLEAR","Clear","Clear-Alt");
+        penBtn = createButton("pen-s","PEN","Pen color","Pen-Alt");
+        fillBtn = createButton("fill-s","FILL","Fill color","Fill-Alt");
+        plotBtn = createButton("plot-s","PLOT","Plot","Plot-Alt");
+        lineBtn =  createButton("line-s","LINE","Line","Line-Alt");
+        rectangleBtn =  createButton("rectangle-s","RECTANGLE","Rectangle","Rectangle-Alt");
+        ellipseBtn =  createButton("ellipse-s","ELLIPSE","Ellipse","Ellipse-Alt");
+        polygonBtn =  createButton("polygon-s","POLYGON","Polygon","Polygon-Alt");
+
+        //Add button to the toolbar
+        toolBar.add(penBtn);
+        toolBar.add(fillBtn);
+        toolBar.add(plotBtn);
+        toolBar.add(lineBtn);
+        toolBar.add(rectangleBtn);
+        toolBar.add(ellipseBtn);
+        toolBar.add(polygonBtn);
+        toolBar.add(clearBtn);
+        toolsPanel.add(toolBar);
+    }
+
+
     public void createColorPalette(){
 
         colorPalette = new JPanel();
 
-        clearBtn = createButton("clear-s","CLEAR","Clear","Clear-Alt");
-        customBtn = createButton("custom-s","CUSTOM","Custom Color","Custom-Alt");
+        currentPenColor = createColorButton(penColor);
+        currentPenColorLabel = new JLabel("Current Pen Color");
+        currentPenColorLabel.setLabelFor(currentPenColor);
+
+        currentFillColor = createColorButton(fillColor);
+        currentFillColorLabel = new JLabel("Current Fill Color");
+        currentFillColorLabel.setLabelFor(currentFillColor);
 
         blackBtn = createColorButton(Color.BLACK);
         darkGrayBtn = createColorButton(Color.DARK_GRAY);
@@ -240,8 +280,13 @@ public class Window extends JFrame implements ActionListener,Runnable {
         orangeBtn = createColorButton(Color.ORANGE);
         redBtn = createColorButton(Color.RED);
         magentaBtn = createColorButton(Color.MAGENTA);
+        customBtn = createButton("custom-s","CUSTOM","Custom Color","Custom-Alt");
 
         // add to panel
+        colorPalette.add(currentPenColor);
+        colorPalette.add(currentPenColorLabel);
+        colorPalette.add(currentFillColor);
+        colorPalette.add(currentFillColorLabel);
         colorPalette.add(blackBtn);
         colorPalette.add(darkGrayBtn);
         colorPalette.add(grayBtn);
@@ -254,9 +299,7 @@ public class Window extends JFrame implements ActionListener,Runnable {
         colorPalette.add(orangeBtn);
         colorPalette.add(redBtn);
         colorPalette.add(magentaBtn);
-        colorPalette.add(clearBtn);
         colorPalette.add(customBtn);
-
         palettePanel.add(colorPalette,BorderLayout.SOUTH);
     }
 
@@ -313,6 +356,8 @@ public class Window extends JFrame implements ActionListener,Runnable {
         return panel;
     }
 
+
+
     /**
      * Create buttons for the color palette
      * @param color
@@ -328,36 +373,41 @@ public class Window extends JFrame implements ActionListener,Runnable {
             public void actionPerformed(ActionEvent e) {
 
                 if(e.getSource() == blackBtn) {
-
-                    if(penClicked){
-                        penColor = Color.BLACK;
-                    }else if(fillClicked){
-                        fillColor =Color.BLACK;
-                    }else{
-                        penColor = Color.BLACK;
-                    }
+                    penColor = setPenColor(blackBtn);
+                    fillColor = setFillColor(blackBtn);
                 }else if( e.getSource() == darkGrayBtn){
-                    penColor = darkGrayBtn.getBackground();
+                    penColor = setPenColor(darkGrayBtn);
+                    fillColor = setFillColor(darkGrayBtn);
                 }else if( e.getSource() == grayBtn){
-                        penColor = grayBtn.getBackground();
+                    penColor = setPenColor(grayBtn);
+                    fillColor = setFillColor(grayBtn);
                 }else if( e.getSource() == lightGrayBtn) {
-                    penColor = lightGrayBtn.getBackground();
+                    penColor = setPenColor(lightGrayBtn);
+                    fillColor = setFillColor(lightGrayBtn);
                 }else if( e.getSource() == whiteBtn){
-                    penColor = whiteBtn.getBackground();
+                    penColor = setPenColor(whiteBtn);
+                    fillColor = setFillColor(whiteBtn);
                 }else if( e.getSource() == blueBtn){
-                    penColor = blueBtn.getBackground();
+                    penColor = setPenColor(blueBtn);
+                    fillColor = setFillColor(blueBtn);
                 }else if( e.getSource() == cyanBtn) {
-                    penColor = cyanBtn.getBackground();
+                    penColor = setPenColor(cyanBtn);
+                    fillColor = setFillColor(cyanBtn);
                 }else if( e.getSource() == greenBtn){
-                    penColor = greenBtn.getBackground();
+                    penColor = setPenColor(greenBtn);
+                    fillColor = setFillColor(greenBtn);
                 }else if( e.getSource() == yellowBtn){
-                    penColor = yellowBtn.getBackground();
+                    penColor = setPenColor(yellowBtn);
+                    fillColor = setFillColor(yellowBtn);
                 }else if(e.getSource() == orangeBtn){
-                    penColor = orangeBtn.getBackground();
+                    penColor = setPenColor(orangeBtn);
+                    fillColor = setFillColor(orangeBtn);
                 }else if( e.getSource() == redBtn){
-                    penColor = redBtn.getBackground();
+                    penColor = setPenColor(redBtn);
+                    fillColor = setFillColor(redBtn);
                 }else if(e.getSource() == magentaBtn) {
-                    penColor = magentaBtn.getBackground();
+                    penColor = setPenColor(magentaBtn);
+                    fillColor = setFillColor(magentaBtn);
                 }
 //                else{}
             }
@@ -366,6 +416,8 @@ public class Window extends JFrame implements ActionListener,Runnable {
         //(4) Return the JButton object
         return button;
     }
+
+
 
     /**
      * @param imageName name for the image file. Not file extension needed.
@@ -406,7 +458,6 @@ public class Window extends JFrame implements ActionListener,Runnable {
 
                 currentAction = actionCommand;
                 comSelected.setText("Command: " + currentAction);
-
                 System.out.println("Current Command: " + currentAction);
 
 //                if(stroke){
@@ -420,8 +471,7 @@ public class Window extends JFrame implements ActionListener,Runnable {
                     // New modal color chooser
                     Color newColor = JColorChooser.showDialog(mainPanel, "Pick a color", mainPanel.getBackground());
 
-                    // if a color is picked newColor is set to the color
-                    // otherwise is set to null.
+                    // if a color is picked newColor is set to the color otherwise is set to null.
                     if (newColor != null) {
                         pnlDisplay.setBackground(newColor);
                     }
@@ -450,33 +500,6 @@ public class Window extends JFrame implements ActionListener,Runnable {
         return button;
     }
 
-    /**
-     * Creates a Toolbar containing the drawing buttons.
-     */
-    private void createToolbar(){
-        toolBar = new JToolBar();
-        toolBar.setFloatable(false);    //fixed toolBar
-        toolBar.setRollover(true);      //displays info when hovering
-
-        //Create ToolBar
-        penBtn = createButton("pen-s","PEN","Pen color","Pen-Alt");
-        fillBtn = createButton("fill-s","FILL","Fill color","Fill-Alt");
-        plotBtn = createButton("plot-s","PLOT","Plot","Plot-Alt");
-        lineBtn =  createButton("line-s","LINE","Line","Line-Alt");
-        rectangleBtn =  createButton("rectangle-s","RECTANGLE","Rectangle","Rectangle-Alt");
-        ellipseBtn =  createButton("ellipse-s","ELLIPSE","Ellipse","Ellipse-Alt");
-        polygonBtn =  createButton("polygon-s","POLYGON","Polygon","Polygon-Alt");
-
-        //Add button to the toolbar
-        toolBar.add(penBtn);
-        toolBar.add(fillBtn);
-        toolBar.add(plotBtn);
-        toolBar.add(lineBtn);
-        toolBar.add(rectangleBtn);
-        toolBar.add(ellipseBtn);
-        toolBar.add(polygonBtn);
-        toolsPanel.add(toolBar);
-    }
 
 
     //END HELPER METHODS
@@ -706,4 +729,30 @@ public class Window extends JFrame implements ActionListener,Runnable {
     }
 
     // todo: Polygon
+
+    private Color setPenColor(JButton btn){
+
+        Color c = penColor;
+
+        if(penClicked && (!fillClicked)) {
+            penColor = btn.getBackground();
+            currentPenColor.setBackground(penColor);
+            return c;
+        }
+        return c;
+    }
+
+    private Color setFillColor(JButton btn) {
+
+        Color c = fillColor;
+
+        if (!penClicked && fillClicked){
+            fillColor = btn.getBackground();
+            currentFillColor.setBackground(fillColor);
+        }else{
+            penColor = Color.RED;
+        }
+
+        return c;
+    }
 }
