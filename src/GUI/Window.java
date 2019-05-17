@@ -1,7 +1,6 @@
 package GUI;
 
 import javax.swing.*;
-import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 import java.awt.*;
 import java.awt.event.*;
@@ -48,13 +47,13 @@ public class Window extends JFrame implements ActionListener,Runnable {
     JLabel coor, comSelected, zoom;
 
     private String currentAction = "No command selected";
-    private JButton currentPenColor;
+    private JButton currentPenColorBtn;
     private JLabel currentPenColorLabel;
-    private JButton currentFillColor;
+    private JButton currentFillColorBtn;
     private JLabel currentFillColorLabel;
     private Color penColor = Color.BLACK;
     private Color fillColor = Color.WHITE;
-    boolean penClicked = false;
+    boolean penClicked = true;
     boolean fillClicked = false;
 
 
@@ -260,13 +259,13 @@ public class Window extends JFrame implements ActionListener,Runnable {
 
         colorPalette = new JPanel();
 
-        currentPenColor = createColorButton(penColor);
+        currentPenColorBtn = createColorButton(penColor);
         currentPenColorLabel = new JLabel("Current Pen Color");
-        currentPenColorLabel.setLabelFor(currentPenColor);
+        currentPenColorLabel.setLabelFor(currentPenColorBtn);
 
-        currentFillColor = createColorButton(fillColor);
+        currentFillColorBtn = createColorButton(fillColor);
         currentFillColorLabel = new JLabel("Current Fill Color");
-        currentFillColorLabel.setLabelFor(currentFillColor);
+        currentFillColorLabel.setLabelFor(currentFillColorBtn);
 
         blackBtn = createColorButton(Color.BLACK);
         darkGrayBtn = createColorButton(Color.DARK_GRAY);
@@ -283,9 +282,9 @@ public class Window extends JFrame implements ActionListener,Runnable {
         customBtn = createButton("custom-s","CUSTOM","Custom Color","Custom-Alt");
 
         // add to panel
-        colorPalette.add(currentPenColor);
+        colorPalette.add(currentPenColorBtn);
         colorPalette.add(currentPenColorLabel);
-        colorPalette.add(currentFillColor);
+        colorPalette.add(currentFillColorBtn);
         colorPalette.add(currentFillColorLabel);
         colorPalette.add(blackBtn);
         colorPalette.add(darkGrayBtn);
@@ -408,8 +407,13 @@ public class Window extends JFrame implements ActionListener,Runnable {
                 }else if(e.getSource() == magentaBtn) {
                     penColor = setPenColor(magentaBtn);
                     fillColor = setFillColor(magentaBtn);
+                }else if(e.getSource() == currentPenColorBtn){
+                    penClicked = true;
+                    fillClicked = false;
+                }else if(e.getSource() == currentFillColorBtn){
+                    penClicked = false;
+                    fillClicked = true;
                 }
-//                else{}
             }
         });
 
@@ -426,14 +430,9 @@ public class Window extends JFrame implements ActionListener,Runnable {
      * @param altText Text displayed if no image is found.
      * @return JButton
      */
-    private JButton createButton(String imageName,
-                                 String actionCommand,
-                                 String toolTipText,
-                                 String altText) {
+    private JButton createButton(String imageName,String actionCommand, String toolTipText, String altText) {
         //Look for the image.
-        String imgLocation = "images/"
-                + imageName
-                + ".gif";
+        String imgLocation = "images/" + imageName + ".gif";
         URL imageURL = Window.class.getResource(imgLocation);
 
         //Create and initialize the button.
@@ -441,59 +440,53 @@ public class Window extends JFrame implements ActionListener,Runnable {
         button.setActionCommand(actionCommand);
         button.setToolTipText(toolTipText);
 
-
-
         if (imageURL != null) { //image found
             button.setIcon(new ImageIcon(imageURL, altText));
         } else { //no image found
             button.setText(altText);
-            System.err.println("Imagen not found: "
-                    + imgLocation);
+            System.err.println("Image not found: " + imgLocation);
         }
 
         //Add listener and event handlers
         button.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-
                 currentAction = actionCommand;
                 comSelected.setText("Command: " + currentAction);
                 System.out.println("Current Command: " + currentAction);
 
-//                if(stroke){
-//                    //JColorChooser is a popup that lets you pick a color
-//                    strokeColor = JColorChooser.showDialog(null,  "Pick a Stroke", Color.BLACK);
-//                } else {
-//                    fillColor = JColorChooser.showDialog(null,  "Pick a Fill", Color.BLACK);
-//                }
-//                if( e.getSource() == customBtn) {
-                  if( currentAction == "CUSTOM"){
-                    // New modal color chooser
+                if( e.getSource() == customBtn) {
+                    // Display modal color picker
                     Color newColor = JColorChooser.showDialog(mainPanel, "Pick a color", mainPanel.getBackground());
 
-                    // if a color is picked newColor is set to the color otherwise is set to null.
+                    // if a color is picked newColor is set to the picked color
+                    // otherwise is set to null.
                     if (newColor != null) {
-                        pnlDisplay.setBackground(newColor);
+                        //check if pen or fill is being used.
+                        if ( penClicked){
+                            penColor = newColor;
+                            currentPenColorBtn.setBackground(penColor);
+                        }
+                        if ( fillClicked){
+                            fillColor = newColor;
+                            currentFillColorBtn.setBackground(fillColor);
+                        }
                     }
                 }
-//                if( e.getSource() == clearBtn) {
-                  if( currentAction == "CLEAR"){
-                    pnlDisplay.setForeground(Color.WHITE);//Clear display panel
-
+                if( e.getSource() == clearBtn) {
+                    // todo: Clear drawing
                 }
 
                 if( e.getSource() == penBtn){
                     penClicked = true;
                     fillClicked = false;
-                    System.out.println("Pen status: "+ penClicked);
-                    System.out.println("Fill status: "+fillClicked);
                 }
                 if (e.getSource() == fillBtn){
                     penClicked = false;
                     fillClicked = true;
-                    System.out.println("Pen status: "+ penClicked);
-                    System.out.println("Fill status: "+fillClicked);
                 }
+
+
             }
         });
 
@@ -730,29 +723,39 @@ public class Window extends JFrame implements ActionListener,Runnable {
 
     // todo: Polygon
 
-    private Color setPenColor(JButton btn){
+    /**
+     * Sets the color of the pen if an only the Pen Button has been clicked. Otherwise, leaves
+     * the pen color as it is.
+     * @param buttonClicked The color button that triggered the event.
+     * @return pc Color of the pen.
+     */
+    private Color setPenColor(JButton buttonClicked){
 
-        Color c = penColor;
+        Color pc = penColor;
 
         if(penClicked && (!fillClicked)) {
-            penColor = btn.getBackground();
-            currentPenColor.setBackground(penColor);
-            return c;
+            penColor = buttonClicked.getBackground();
+            currentPenColorBtn.setBackground(penColor);
+            return pc;
         }
-        return c;
+        return pc;
     }
 
-    private Color setFillColor(JButton btn) {
+    /**
+     * Sets the color of the fill if an only the Fill Button has been clicked. Otherwise, leaves
+     * the fill color as it is.
+     * @param buttonClicked The color button that triggered the event.
+     * @return fc - Color of the fill.
+     */
+    private Color setFillColor(JButton buttonClicked) {
 
-        Color c = fillColor;
+        Color fc = fillColor;
 
         if (!penClicked && fillClicked){
-            fillColor = btn.getBackground();
-            currentFillColor.setBackground(fillColor);
-        }else{
-            penColor = Color.RED;
+            fillColor = buttonClicked.getBackground();
+            currentFillColorBtn.setBackground(fillColor);
         }
 
-        return c;
+        return fc;
     }
 }
