@@ -48,7 +48,7 @@ public class Window extends JFrame implements ActionListener,Runnable {
     private JLabel checkBoxLabel;
     private JButton currentFillColorBtn;
     private JLabel currentFillColorLabel;
-    private static Color penColor = Color.RED;
+    private static Color penColor = Color.BLACK;
     private static Color fillColor = Color.WHITE;
     boolean penClicked = true;
     boolean fillClicked = false;
@@ -424,6 +424,7 @@ public class Window extends JFrame implements ActionListener,Runnable {
         JButton button = new JButton();
         button.setActionCommand(actionCommand);
         button.setToolTipText(toolTipText);
+        button.setMaximumSize(new Dimension(75,75));
 
         if (imageURL != null) { //image found
             button.setIcon(new ImageIcon(imageURL, altText));
@@ -466,7 +467,25 @@ public class Window extends JFrame implements ActionListener,Runnable {
                     }
                 }
                 if( e.getSource() == clearBtn) {
-                    // todo: Clear drawing
+
+                    Object[] options = {"Ok", "Cancel"};
+                    int clearDrawings = JOptionPane.showOptionDialog( pnlDisplay,
+                            "This action will clear all the drawings and cannot be undone.\n"
+                                    + "Do you want to proceed?",
+                            "Clear Drawings",
+                            JOptionPane.OK_CANCEL_OPTION,
+                            JOptionPane.WARNING_MESSAGE,
+                            null,
+                            options,
+                            options[1]);
+
+                    if( clearDrawings == 0){
+                        Canvas.shapes.clear();
+                        Canvas.shapePen.clear();
+                        Canvas.shapeFill.clear();
+                        Canvas.shapeFilled.clear();
+                        repaint();
+                    }
                 }
 
                 if( e.getSource() == penBtn){

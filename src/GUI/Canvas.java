@@ -16,10 +16,10 @@ public class Canvas extends JComponent {
     // ArrayLists that contain each shape drawn along with
     // that shapes stroke and fill
 
-    ArrayList<Shape> shapes = new ArrayList<Shape>();
-    ArrayList<Color> shapePen = new ArrayList<Color>();
-    ArrayList<Color> shapeFill = new ArrayList<Color>();
-    ArrayList<Boolean> shapeFilled = new ArrayList<>();
+    static ArrayList<Shape> shapes = new ArrayList<Shape>();
+    static ArrayList<Color> shapePen = new ArrayList<Color>();
+    static ArrayList<Color> shapeFill = new ArrayList<Color>();
+    static  ArrayList<Boolean> shapeFilled = new ArrayList<>();
     Point drawStart;
     static Point drawEnd;
 
@@ -56,15 +56,13 @@ public class Canvas extends JComponent {
                     shapes.add(s);
                     shapePen.add(Window.getCurrentPenColor());
                     shapeFill.add(Window.getCurrentFillColor());
-                }
 
-//
-//                if(Window.fillCheckBox.isSelected()){
-//                    shapeFilled.add(true);
-//                }else{
-//                    shapeFilled.add(true);
-//                }
-
+                    if(Window.fillCheckBox.isSelected()){
+                        shapeFilled.add(true);
+                    }else{
+                        shapeFilled.add(false);
+                    }
+                 }
 
                 drawStart = null;
                 drawEnd = null;
@@ -102,27 +100,18 @@ public class Canvas extends JComponent {
         // Iterators created to cycle through strokes and fills
         Iterator<Color> strokeCounter = shapePen.iterator();
         Iterator<Color> fillCounter = shapeFill.iterator();
+        Iterator<Boolean> fillIndicator = shapeFilled.iterator();
 
         // Eliminates transparent setting below
         g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
 
         for (Shape shape : shapes) {
 
-            // Grabs the next stroke from the color ArrayList
-            g2.setPaint(strokeCounter.next());
-//            g2.setPaint(Window.getCurrentPenColor());
-            g2.draw(shape);
+            g2.setPaint(strokeCounter.next());  // Color of the border
+            g2.draw(shape);                     // Shape of the drawing
+            g2.setPaint(fillCounter.next());    // Color of the fill if any.
 
-            // Grabs the next fill from the color ArrayList
-            g2.setPaint(fillCounter.next());
-//            g2.setPaint(Window.getCurrentFillColor());
-            //todo: get checkBox state
-            //if selected
-            //  fill shape
-            //else
-            //  no fill
-
-            if(Window.fillCheckBox.isSelected()){
+            if(fillIndicator.next() == true){   // fill shape if needed
                 g2.fill(shape);
             }
 
@@ -131,16 +120,14 @@ public class Canvas extends JComponent {
         // Guide shape used for drawing
         if (drawStart != null && drawEnd != null) {
             // Transparent guide shape
-            g2.setComposite(AlphaComposite.getInstance(
-                    AlphaComposite.SRC_OVER, 0.40f));
-
+            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.40f));
             g2.setPaint(Color.LIGHT_GRAY);
 
-            // Create new shape base on current command
+            // Create new shape based on current command
             Shape shape = defineShape(Window.getCurrentAction(),drawStart.x, drawStart.y, drawEnd.x, drawEnd.y);
             g2.draw(shape);
         }
-    }//End Pain Method
+    }//End Paint Method
 
 
     /**
@@ -153,7 +140,7 @@ public class Canvas extends JComponent {
         // return the guide shape if none command is selected.
         Shape s = drawRectangle(x1, y1, x2, y2);
 
-        //return the apropiatte shape if any drawing command is selected.
+        //return the appropiate shape if any drawing command is selected.
         if ( action == "LINE"){
             s = drawLine(x1, y1, x2, y2);
         }else if (action == "ELLIPSE"){
