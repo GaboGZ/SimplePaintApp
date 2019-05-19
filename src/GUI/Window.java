@@ -46,13 +46,14 @@ public class Window extends JFrame implements ActionListener,Runnable {
     JPanel statusBar;
     JLabel coor, comSelected, zoom;
 
-    private String currentAction = "No command selected";
+    private static String currentAction = "PEN";
     private JButton currentPenColorBtn;
     private JLabel currentPenColorLabel;
+    private JRadioButton fillRadioButton;
     private JButton currentFillColorBtn;
     private JLabel currentFillColorLabel;
-    private Color penColor = Color.BLACK;
-    private Color fillColor = Color.WHITE;
+    private static Color penColor = Color.BLACK;
+    private static Color fillColor = Color.WHITE;
     boolean penClicked = true;
     boolean fillClicked = false;
 
@@ -236,6 +237,7 @@ public class Window extends JFrame implements ActionListener,Runnable {
         clearBtn = createButton("clear-s","CLEAR","Clear","Clear-Alt");
         penBtn = createButton("pen-s","PEN","Pen color","Pen-Alt");
         fillBtn = createButton("fill-s","FILL","Fill color","Fill-Alt");
+        fillRadioButton = new JRadioButton();
         plotBtn = createButton("plot-s","PLOT","Plot","Plot-Alt");
         lineBtn =  createButton("line-s","LINE","Line","Line-Alt");
         rectangleBtn =  createButton("rectangle-s","RECTANGLE","Rectangle","Rectangle-Alt");
@@ -245,6 +247,8 @@ public class Window extends JFrame implements ActionListener,Runnable {
         //Add button to the toolbar
         toolBar.add(penBtn);
         toolBar.add(fillBtn);
+        toolBar.add(fillRadioButton);
+
         toolBar.add(plotBtn);
         toolBar.add(lineBtn);
         toolBar.add(rectangleBtn);
@@ -363,6 +367,7 @@ public class Window extends JFrame implements ActionListener,Runnable {
      * @return a colored button
      */
     private JButton createColorButton(Color color){
+
         JButton button = new JButton();
         button.setPreferredSize(new Dimension(25,25));
         button.setBackground(color);
@@ -417,7 +422,6 @@ public class Window extends JFrame implements ActionListener,Runnable {
             }
         });
 
-        //(4) Return the JButton object
         return button;
     }
 
@@ -539,190 +543,6 @@ public class Window extends JFrame implements ActionListener,Runnable {
         }
     }
 
-    private class Canvas extends JComponent {
-
-        // ArrayLists that contain each shape drawn along with
-        // that shapes stroke and fill
-
-        ArrayList<Shape> shapes = new ArrayList<Shape>();
-        ArrayList<Color> shapeFill = new ArrayList<Color>();
-        ArrayList<Color> shapeStroke = new ArrayList<Color>();
-        Point drawStart, drawEnd;
-
-        /**
-         * Creates a Canvas for the display panel.
-         * Adds a MouseListener to detect mouse events.
-         */
-        public Canvas() {
-            this.addMouseListener(new MouseAdapter() {
-
-                /**
-                 * Gets coordinates when mouse is pressed.
-                 * @param e
-                 */
-                public void mousePressed(MouseEvent e) {
-                    drawStart = new Point(e.getX(), e.getY());
-                    drawEnd = drawStart;
-                    repaint();
-                }
-
-                /**
-                 * Gets coordinates when mouse is released.
-                 * @param e
-                 */
-                public void mouseReleased(MouseEvent e) {
-
-                    // Creates a shape based on the current currentAction command
-
-                    if ( currentAction == "LINE"){
-//                        Shape line = drawLine(drawStart.x, drawStart.y, e.getX(), e.getY());
-                        Shape line = defineShape("LINE",drawStart.x, drawStart.y, e.getX(), e.getY());
-                        shapes.add(line);
-                    }else if ( currentAction == "RECTANGLE"){
-                        Shape rect = defineShape("RECTANGLE",drawStart.x, drawStart.y, e.getX(), e.getY());
-                        shapes.add(rect);
-                    }else if (currentAction == "ELLIPSE"){
-                        Shape ellipse = defineShape("ELLIPSE",drawStart.x, drawStart.y, e.getX(), e.getY());
-                        shapes.add(ellipse);
-                    }else if ( currentAction == "PLOT"){
-                        Shape plot = defineShape("PLOT",drawStart.x, drawStart.y, e.getX(), e.getY());
-                        shapes.add(plot);
-                    }
-
-                    // Add shapes, fills and colors to there ArrayLists
-                    shapeFill.add(fillColor);
-                    shapeStroke.add(penColor);
-                    drawStart = null;
-                    drawEnd = null;
-
-                    repaint(); // IMPORTANT! -> repaint the drawing area
-                }
-            });
-
-            /**
-             * Gets coordinates when mouse is dragged.
-             */
-            this.addMouseMotionListener(new MouseMotionAdapter() {
-                public void mouseDragged(MouseEvent e) {
-                    drawEnd = new Point(e.getX(), e.getY());
-                    coor.setText("(x,y): " + e.getX() +", "+ e.getY() + "      ");
-                    repaint();
-                }
-            });
-
-        }// end Canvas constructor
-
-        public void paint(Graphics g){
-
-            // Class used to define the shapes to be drawn
-            Graphics2D graphSettings = (Graphics2D)g;
-
-            // Antialiasing cleans up the jagged lines and defines rendering rules
-            graphSettings.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-                    RenderingHints.VALUE_ANTIALIAS_ON);
-
-            // Defines the line width of the stroke
-            graphSettings.setStroke(new BasicStroke(3));
-
-            // Iterators created to cycle through strokes and fills
-            Iterator<Color> strokeCounter = shapeStroke.iterator();
-            Iterator<Color> fillCounter = shapeFill.iterator();
-
-            // Eliminates transparent setting below
-            graphSettings.setComposite(AlphaComposite.getInstance(
-                    AlphaComposite.SRC_OVER, 1.0f));
-
-            for (Shape s : shapes) {
-
-                // Grabs the next stroke from the color ArrayList
-                graphSettings.setPaint(strokeCounter.next());
-                graphSettings.draw(s);
-
-                // Grabs the next fill from the color ArrayList
-                graphSettings.setPaint(fillCounter.next());
-                graphSettings.fill(s);
-            }
-
-            // Guide shape used for drawing
-            if (drawStart != null && drawEnd != null) {
-                // Transparent guide shape
-                graphSettings.setComposite(AlphaComposite.getInstance(
-                        AlphaComposite.SRC_OVER, 0.40f));
-
-                graphSettings.setPaint(Color.LIGHT_GRAY);
-
-                //Initial shape
-//                Shape aShape = drawRectangle(drawStart.x, drawStart.y,
-//                        drawEnd.x, drawEnd.y);
-
-                // Create new shape base on current command
-                Shape shape = defineShape(currentAction,drawStart.x, drawStart.y, drawEnd.x, drawEnd.y);
-                graphSettings.draw(shape);
-            }
-        }
-
-        /**
-         * Returns a shape based on the current command action.
-         * @param action
-         * @return
-         */
-        private Shape defineShape(String action, int x1,int y1, int x2, int y2){
-
-            Shape s = drawRectangle(x1, y1, x2, y2);
-
-            if ( action == "LINE"){
-                s = drawLine(x1, y1, x2, y2);
-            }else if (action == "ELLIPSE"){
-                s = drawEllipse(x1, y1, x2, y2);
-            }else if( action == "PLOT"){
-                s = drawPlot(x1, y1, x2, y2);
-            }else if (action == "RECTANGLE"){
-                s = drawRectangle(x1, y1, x2, y2);
-            }
-
-            return s;
-        }
-
-    }//end Canvas Class
-
-
-
-
-    private Rectangle2D.Float drawRectangle(int x1, int y1, int x2, int y2) {
-        // Get the top left hand corner for the shape
-        // Math.min returns the points closest to 0
-
-        int x = Math.min(x1, x2);
-        int y = Math.min(y1, y2);
-
-        // Gets the difference between the coordinates and
-
-        int width = Math.abs(x1 - x2);
-        int height = Math.abs(y1 - y2);
-
-        return new Rectangle2D.Float(
-                x, y, width, height);
-    }
-
-    private Ellipse2D.Float drawEllipse(int x1, int y1, int x2, int y2) {
-        int x = Math.min(x1, x2);
-        int y = Math.min(y1, y2);
-        int width = Math.abs(x1 - x2);
-        int height = Math.abs(y1 - y2);
-
-        return new Ellipse2D.Float(x, y, width, height);
-    }
-
-    private Line2D.Float drawLine(int x1, int y1, int x2, int y2){
-        return new Line2D.Float(x1,y1,x2,y2);
-    }
-
-    private Line2D.Float drawPlot(int x1, int y1, int x2, int y2){
-        return new Line2D.Float(x1,y1,x1,y1);
-    }
-
-    // todo: Polygon
-
     /**
      * Sets the color of the pen if an only the Pen Button has been clicked. Otherwise, leaves
      * the pen color as it is.
@@ -733,7 +553,7 @@ public class Window extends JFrame implements ActionListener,Runnable {
 
         Color pc = penColor;
 
-        if(penClicked && (!fillClicked)) {
+        if(penClicked && (!fillClicked)){
             penColor = buttonClicked.getBackground();
             currentPenColorBtn.setBackground(penColor);
             return pc;
@@ -757,5 +577,17 @@ public class Window extends JFrame implements ActionListener,Runnable {
         }
 
         return fc;
+    }
+
+    public static String getCurrentAction(){
+        return currentAction;
+    }
+
+    public static Color getCurrentPenColor(){
+        return penColor;
+    }
+
+    public static Color getCurrentFillColor(){
+        return fillColor;
     }
 }
