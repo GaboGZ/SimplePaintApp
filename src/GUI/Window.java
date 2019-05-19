@@ -4,13 +4,8 @@ import javax.swing.*;
 import javax.swing.border.EtchedBorder;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.geom.Ellipse2D;
-import java.awt.geom.Line2D;
-import java.awt.geom.Rectangle2D;
 import java.net.URL;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Iterator;
 
 
 public class Window extends JFrame implements ActionListener,Runnable {
@@ -49,52 +44,30 @@ public class Window extends JFrame implements ActionListener,Runnable {
     private static String currentAction = "PEN";
     private JButton currentPenColorBtn;
     private JLabel currentPenColorLabel;
-    private JRadioButton fillRadioButton;
+    static JCheckBox fillCheckBox;
+    private JLabel checkBoxLabel;
     private JButton currentFillColorBtn;
     private JLabel currentFillColorLabel;
-    private static Color penColor = Color.BLACK;
+    private static Color penColor = Color.RED;
     private static Color fillColor = Color.WHITE;
     boolean penClicked = true;
     boolean fillClicked = false;
 
-
-
-
-    public static void main(String[] args){
-
-        SwingUtilities.invokeLater(new Window());
-        // the .invokeLater(Runnable doRun) method run the doRun.run() methods on a
-        // separate thread.
-
-    }
 
     @Override
     public void run() {
         createAndDisplayGUI();
     }
 
-    /**
-     * Constructs the main window by using a JFrame
-     */
-    public Window(){
-
-        //Set default look and feel
-        JFrame.setDefaultLookAndFeelDecorated(true);
-
-        //Create window
-        JFrame Window = new JFrame();
-        Window.setTitle("CAB302 | Java Project");
-
-        //Set currentAction when window is closed
-        Window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    }
-
-
     private void createAndDisplayGUI(){
 
+        JFrame.setDefaultLookAndFeelDecorated(true);
+        JFrame Window = new JFrame();
+
         //Set GUI
-        setSize(WIDTH,HEIGHT);
+        setTitle("CAB302 | Java Project");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(WIDTH,HEIGHT);
         setLayout(new BorderLayout());
 
         //Add components
@@ -237,7 +210,13 @@ public class Window extends JFrame implements ActionListener,Runnable {
         clearBtn = createButton("clear-s","CLEAR","Clear","Clear-Alt");
         penBtn = createButton("pen-s","PEN","Pen color","Pen-Alt");
         fillBtn = createButton("fill-s","FILL","Fill color","Fill-Alt");
-        fillRadioButton = new JRadioButton();
+        fillCheckBox = new JCheckBox();
+
+        checkBoxLabel = new JLabel();
+        checkBoxLabel.setLabelFor(fillCheckBox);
+        checkBoxLabel.setText("Fill Shape?");
+
+
         plotBtn = createButton("plot-s","PLOT","Plot","Plot-Alt");
         lineBtn =  createButton("line-s","LINE","Line","Line-Alt");
         rectangleBtn =  createButton("rectangle-s","RECTANGLE","Rectangle","Rectangle-Alt");
@@ -247,7 +226,8 @@ public class Window extends JFrame implements ActionListener,Runnable {
         //Add button to the toolbar
         toolBar.add(penBtn);
         toolBar.add(fillBtn);
-        toolBar.add(fillRadioButton);
+        toolBar.add(fillCheckBox);
+        toolBar.add(checkBoxLabel);
 
         toolBar.add(plotBtn);
         toolBar.add(lineBtn);
@@ -264,11 +244,11 @@ public class Window extends JFrame implements ActionListener,Runnable {
         colorPalette = new JPanel();
 
         currentPenColorBtn = createColorButton(penColor);
-        currentPenColorLabel = new JLabel("Current Pen Color");
+        currentPenColorLabel = new JLabel("Pen Color");
         currentPenColorLabel.setLabelFor(currentPenColorBtn);
 
         currentFillColorBtn = createColorButton(fillColor);
-        currentFillColorLabel = new JLabel("Current Fill Color");
+        currentFillColorLabel = new JLabel("Fill Color");
         currentFillColorLabel.setLabelFor(currentFillColorBtn);
 
         blackBtn = createColorButton(Color.BLACK);
@@ -313,10 +293,10 @@ public class Window extends JFrame implements ActionListener,Runnable {
         statusBar.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
 
         coor = new JLabel();
-        coor.setText("(x,y) = ");
+        coor.setText("(x,y) = " + Canvas.getMouseCoordinates());
 
         comSelected = new JLabel();
-        comSelected.setText("Current Command: " + currentAction);
+        comSelected.setText("Current Command: " + getCurrentAction());
         comSelected.setHorizontalTextPosition(SwingConstants.CENTER);
 
         zoom = new JLabel();
@@ -418,6 +398,7 @@ public class Window extends JFrame implements ActionListener,Runnable {
                 }else if(e.getSource() == currentFillColorBtn){
                     penClicked = false;
                     fillClicked = true;
+
                 }
             }
         });
@@ -434,7 +415,7 @@ public class Window extends JFrame implements ActionListener,Runnable {
      * @param altText Text displayed if no image is found.
      * @return JButton
      */
-    private JButton createButton(String imageName,String actionCommand, String toolTipText, String altText) {
+    private JButton createButton(String imageName,String actionCommand, String toolTipText,String altText) {
         //Look for the image.
         String imgLocation = "images/" + imageName + ".gif";
         URL imageURL = Window.class.getResource(imgLocation);
@@ -455,9 +436,16 @@ public class Window extends JFrame implements ActionListener,Runnable {
         button.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                currentAction = actionCommand;
-                comSelected.setText("Command: " + currentAction);
-                System.out.println("Current Command: " + currentAction);
+
+//                if (actionCommand != "CLEAR" && actionCommand != "PEN" && actionCommand != "FILL"){
+//                    currentAction = actionCommand;
+//                }
+                if( isDrawingCommand(actionCommand)){
+                    currentAction = actionCommand;
+                }
+
+                comSelected.setText("Command: " + getCurrentAction());
+                System.out.println("Current Command: " + getCurrentAction());
 
                 if( e.getSource() == customBtn) {
                     // Display modal color picker
@@ -497,9 +485,6 @@ public class Window extends JFrame implements ActionListener,Runnable {
         return button;
     }
 
-
-
-    //END HELPER METHODS
 
     /*      EVENT LISTENERS     */
     @Override
@@ -546,16 +531,16 @@ public class Window extends JFrame implements ActionListener,Runnable {
     /**
      * Sets the color of the pen if an only the Pen Button has been clicked. Otherwise, leaves
      * the pen color as it is.
-     * @param buttonClicked The color button that triggered the event.
+     * @param colorButtonClicked The color button that triggered the event.
      * @return pc Color of the pen.
      */
-    private Color setPenColor(JButton buttonClicked){
+    private Color setPenColor(JButton colorButtonClicked){
 
-        Color pc = penColor;
+        Color pc = getCurrentPenColor();
 
-        if(penClicked && (!fillClicked)){
-            penColor = buttonClicked.getBackground();
-            currentPenColorBtn.setBackground(penColor);
+        if(penClicked){
+            pc = colorButtonClicked.getBackground();
+            currentPenColorBtn.setBackground(pc);
             return pc;
         }
         return pc;
@@ -564,23 +549,31 @@ public class Window extends JFrame implements ActionListener,Runnable {
     /**
      * Sets the color of the fill if an only the Fill Button has been clicked. Otherwise, leaves
      * the fill color as it is.
-     * @param buttonClicked The color button that triggered the event.
+     * @param colorButtonClicked The color button that triggered the event.
      * @return fc - Color of the fill.
      */
-    private Color setFillColor(JButton buttonClicked) {
+    private Color setFillColor(JButton colorButtonClicked) {
 
-        Color fc = fillColor;
+        Color fc = getCurrentFillColor();
 
-        if (!penClicked && fillClicked){
-            fillColor = buttonClicked.getBackground();
-            currentFillColorBtn.setBackground(fillColor);
+        if (fillClicked){
+            fc = colorButtonClicked.getBackground();
+            currentFillColorBtn.setBackground(fc);
         }
-
         return fc;
     }
 
     public static String getCurrentAction(){
         return currentAction;
+    }
+
+    public static boolean isDrawingCommand(String action){
+        if (action != "CLEAR" && action != "PEN" && action != "FILL"){
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 
     public static Color getCurrentPenColor(){
@@ -590,4 +583,5 @@ public class Window extends JFrame implements ActionListener,Runnable {
     public static Color getCurrentFillColor(){
         return fillColor;
     }
+
 }

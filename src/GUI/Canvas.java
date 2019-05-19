@@ -19,7 +19,9 @@ public class Canvas extends JComponent {
     ArrayList<Shape> shapes = new ArrayList<Shape>();
     ArrayList<Color> shapePen = new ArrayList<Color>();
     ArrayList<Color> shapeFill = new ArrayList<Color>();
-    Point drawStart, drawEnd;
+    ArrayList<Boolean> shapeFilled = new ArrayList<>();
+    Point drawStart;
+    static Point drawEnd;
 
     /**
      * Creates a Canvas for the display panel.
@@ -47,17 +49,25 @@ public class Canvas extends JComponent {
                 // Creates a shape based on the current currentAction command
                 Shape s;
                 String command = Window.getCurrentAction();
-                if ( command != "CLEAR" && command != "PEN" && command != "FILL"){
+
+                 if( Window.isDrawingCommand(command)){
                     s = defineShape(command, drawStart.x, drawStart.y, e.getX(), e.getY());
+                    // Add shapes, fills and colors to there ArrayLists
                     shapes.add(s);
+                    shapePen.add(Window.getCurrentPenColor());
+                    shapeFill.add(Window.getCurrentFillColor());
                 }
 
-                // Add shapes, fills and colors to there ArrayLists
-                shapePen.add(Window.getCurrentPenColor());
-                shapeFill.add(Window.getCurrentFillColor());
+//
+//                if(Window.fillCheckBox.isSelected()){
+//                    shapeFilled.add(true);
+//                }else{
+//                    shapeFilled.add(true);
+//                }
+
+
                 drawStart = null;
                 drawEnd = null;
-
                 repaint(); // IMPORTANT! -> repaint the drawing area
             }
         });
@@ -68,56 +78,67 @@ public class Canvas extends JComponent {
         this.addMouseMotionListener(new MouseMotionAdapter() {
             public void mouseDragged(MouseEvent e) {
                 drawEnd = new Point(e.getX(), e.getY());
-//                coor.setText("(x,y): " + e.getX() +", "+ e.getY() + "      ");
                 repaint();
             }
         });
 
     }// end Canvas constructor
 
+    public static String getMouseCoordinates(){
+        String coord = "(0,0)";
+        if(drawEnd != null){
+            coord = "("+ drawEnd.x + drawEnd.y+")";
+        }
+        return coord;
+    }
+
+
     public void paint(Graphics g){
 
-        // Class used to define the shapes to be drawn
-        Graphics2D graphSettings = (Graphics2D)g;
-
-        // Antialiasing cleans up the jagged lines and defines rendering rules
-        graphSettings.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-                RenderingHints.VALUE_ANTIALIAS_ON);
-
-        // Defines the line width of the stroke
-        graphSettings.setStroke(new BasicStroke(3));
+        Graphics2D g2 = (Graphics2D)g;
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setStroke(new BasicStroke(3));
 
         // Iterators created to cycle through strokes and fills
         Iterator<Color> strokeCounter = shapePen.iterator();
         Iterator<Color> fillCounter = shapeFill.iterator();
 
         // Eliminates transparent setting below
-        graphSettings.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
+        g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
 
         for (Shape shape : shapes) {
 
             // Grabs the next stroke from the color ArrayList
-            graphSettings.setPaint(strokeCounter.next());
-            graphSettings.draw(shape);
+            g2.setPaint(strokeCounter.next());
+//            g2.setPaint(Window.getCurrentPenColor());
+            g2.draw(shape);
 
             // Grabs the next fill from the color ArrayList
-            graphSettings.setPaint(fillCounter.next());
+            g2.setPaint(fillCounter.next());
+//            g2.setPaint(Window.getCurrentFillColor());
+            //todo: get checkBox state
+            //if selected
+            //  fill shape
+            //else
+            //  no fill
 
-//                graphSettings.fill(s);
+            if(Window.fillCheckBox.isSelected()){
+                g2.fill(shape);
+            }
 
         }
 
         // Guide shape used for drawing
         if (drawStart != null && drawEnd != null) {
             // Transparent guide shape
-            graphSettings.setComposite(AlphaComposite.getInstance(
+            g2.setComposite(AlphaComposite.getInstance(
                     AlphaComposite.SRC_OVER, 0.40f));
 
-            graphSettings.setPaint(Color.LIGHT_GRAY);
+            g2.setPaint(Color.LIGHT_GRAY);
 
             // Create new shape base on current command
             Shape shape = defineShape(Window.getCurrentAction(),drawStart.x, drawStart.y, drawEnd.x, drawEnd.y);
-            graphSettings.draw(shape);
+            g2.draw(shape);
         }
     }//End Pain Method
 
