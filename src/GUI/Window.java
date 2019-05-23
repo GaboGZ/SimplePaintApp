@@ -39,7 +39,7 @@ public class Window extends JFrame implements ActionListener,Runnable {
     private JFileChooser fileChooser;
 
     JPanel statusBar;
-    JLabel coor, comSelected, zoom;
+    JLabel coordLabel, commmandSelectedLabel, zoomLabel;
 
     private static String currentAction = "PEN";
     private JButton currentPenColorBtn;
@@ -292,22 +292,23 @@ public class Window extends JFrame implements ActionListener,Runnable {
         statusBar = createPanel(Color.WHITE, new BorderLayout());
         statusBar.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
 
-        coor = new JLabel();
-        coor.setText("(x,y) = " + Canvas.getMouseCoordinates());
+        coordLabel = new JLabel();
 
-        comSelected = new JLabel();
-        comSelected.setText("Current Command: " + getCurrentAction());
-        comSelected.setHorizontalTextPosition(SwingConstants.CENTER);
+        coordLabel.setText("(x,y)= " );
 
-        zoom = new JLabel();
-        zoom.setText("Zoom: 100%");
-        zoom.setBackground(Color.WHITE);
+        commmandSelectedLabel = new JLabel();
+        commmandSelectedLabel.setText("Current Command: " + getCurrentAction());
+        commmandSelectedLabel.setHorizontalTextPosition(SwingConstants.CENTER);
 
-        statusBar.add(coor, BorderLayout.WEST);
+        zoomLabel = new JLabel();
+        zoomLabel.setText("Zoom: 100%");
+        zoomLabel.setBackground(Color.WHITE);
+
+        statusBar.add(coordLabel, BorderLayout.WEST);
 //        statusBar.add(new JSeparator(SwingConstants.VERTICAL));
-        statusBar.add(comSelected,BorderLayout.CENTER);
+        statusBar.add(commmandSelectedLabel,BorderLayout.CENTER);
 //        statusBar.add(new JSeparator(SwingConstants.VERTICAL));
-        statusBar.add(zoom, BorderLayout.EAST);
+        statusBar.add(zoomLabel, BorderLayout.EAST);
 
         pnlDown_Down.add(statusBar);
 
@@ -445,7 +446,7 @@ public class Window extends JFrame implements ActionListener,Runnable {
                     currentAction = actionCommand;
                 }
 
-                comSelected.setText("Command: " + getCurrentAction());
+                commmandSelectedLabel.setText("Command: " + getCurrentAction());
                 System.out.println("Current Command: " + getCurrentAction());
 
                 if( e.getSource() == customBtn) {
