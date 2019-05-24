@@ -1,6 +1,7 @@
 package GUI;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 import java.awt.*;
 import java.awt.event.*;
@@ -12,7 +13,7 @@ public class Window extends JFrame implements ActionListener,Runnable {
 
 
     //Constants
-    private static final int WIDTH = 700;
+    private static final int WIDTH = 600;
     private static final int HEIGHT = 700;
 
     //Elements
@@ -31,7 +32,10 @@ public class Window extends JFrame implements ActionListener,Runnable {
 
     private JButton plotBtn, lineBtn, rectangleBtn, ellipseBtn, polygonBtn;
 
-    public JButton penBtn, fillBtn, clearBtn, customBtn;
+    public static JButton penBtn;
+    public JButton fillBtn;
+    public JButton clearBtn;
+    public JButton customBtn;
     public JButton blackBtn, blueBtn, greenBtn, darkGrayBtn, lightGrayBtn;
     public JButton cyanBtn, redBtn, magentaBtn, whiteBtn, grayBtn, orangeBtn, yellowBtn;
     public JPanel colorPalette;
@@ -50,7 +54,7 @@ public class Window extends JFrame implements ActionListener,Runnable {
     private JLabel currentFillColorLabel;
     private static Color penColor = Color.BLACK;
     private static Color fillColor = Color.WHITE;
-    boolean penClicked = true;
+    static boolean penClicked = true;
     static boolean fillClicked = false;
 
 
@@ -104,21 +108,21 @@ public class Window extends JFrame implements ActionListener,Runnable {
 
         pnlUp_Up = createPanel(Color.WHITE, new BorderLayout());
         toolsPanel = createPanel(Color.WHITE);
-        palettePanel = createPanel(Color.WHITE);
+        palettePanel = createPanel(Color.WHITE, new BorderLayout());
         pnlUp_Up.add(toolsPanel, BorderLayout.NORTH);
         pnlUp_Up.add(palettePanel, BorderLayout.SOUTH);
 
-        pnlUp_Down = createPanel(Color.GRAY);
+        pnlUp_Down = createPanel(Color.GRAY); //Surrounds Canvas
         pnlUp.add(pnlUp_Up, BorderLayout.NORTH);
         pnlUp.add(pnlUp_Down, BorderLayout.SOUTH);
 
         // Side Panels
-        pnlLeft = createPanel(Color.GRAY);
-        pnlRight = createPanel(Color.GRAY);
+        pnlLeft = createPanel(Color.GRAY);//Surrounds Canvas
+        pnlRight = createPanel(Color.GRAY);//Surrounds Canvas
 
         // Button Panel
         pnlDown = createPanel(Color.GRAY, new BorderLayout());
-        pnlDown_Up = createPanel(Color.GRAY);
+        pnlDown_Up = createPanel(Color.GRAY);//Surrounds Canvas
         pnlDown_Down = createPanel(Color.WHITE, new BorderLayout()); //Status Bar Panel
         pnlDown.add(pnlDown_Up,BorderLayout.NORTH);
         pnlDown.add(pnlDown_Down, BorderLayout.SOUTH);
@@ -203,6 +207,7 @@ public class Window extends JFrame implements ActionListener,Runnable {
      */
     private void createToolbar(){
         toolBar = new JToolBar();
+        toolBar.setBorder(BorderFactory.createTitledBorder("Drawing Tools"));
         toolBar.setFloatable(false);    //fixed toolBar
         toolBar.setRollover(true);      //displays info when hovering
 
@@ -215,6 +220,7 @@ public class Window extends JFrame implements ActionListener,Runnable {
         checkBoxLabel = new JLabel();
         checkBoxLabel.setLabelFor(fillCheckBox);
         checkBoxLabel.setText("Fill Shape?");
+        checkBoxLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
 
         plotBtn = createButton("plot-s","PLOT","Plot","Plot-Alt");
@@ -241,20 +247,40 @@ public class Window extends JFrame implements ActionListener,Runnable {
 
     public void createColorPalette(){
 
-        colorPalette = new JPanel();
+        colorPalette = createPanel(Color.WHITE, new BorderLayout());
+
+        JPanel pLeft = createPanel(Color.WHITE, new BorderLayout());
+        pLeft.setBorder(BorderFactory.createTitledBorder("Current Colors"));
+        pLeft.setPreferredSize(new Dimension(150,100));
+
+        JPanel pLeft_up = new JPanel();
+        JPanel pLeft_down = new JPanel();
+
+        JPanel pCenter = createPanel(Color.WHITE, new BorderLayout());
+        pCenter.setBorder(BorderFactory.createTitledBorder("Color Palette"));
+        pCenter.setPreferredSize(new Dimension(400,100));
+        JPanel pCenter_up = new JPanel();
+        JPanel pCenter_down = new JPanel();
+
+        JPanel pRight = createPanel(Color.WHITE, new BorderLayout());
+        pRight.setBorder(BorderFactory.createTitledBorder("Custom Color"));
+        pRight.setPreferredSize(new Dimension(150,100));
 
         currentPenColorBtn = createColorButton(penColor);
-        currentPenColorLabel = new JLabel("Pen Color");
+        currentPenColorBtn.setEnabled(false);
+        currentPenColorLabel = new JLabel("Pen");
         currentPenColorLabel.setLabelFor(currentPenColorBtn);
 
         currentFillColorBtn = createColorButton(fillColor);
-        currentFillColorLabel = new JLabel("Fill Color");
+        currentFillColorBtn.setEnabled(false);
+        currentFillColorLabel = new JLabel("Fill");
         currentFillColorLabel.setLabelFor(currentFillColorBtn);
 
+        // Colored Buttons
         blackBtn = createColorButton(Color.BLACK);
         darkGrayBtn = createColorButton(Color.DARK_GRAY);
         grayBtn = createColorButton(Color.GRAY);
-        lightGrayBtn = createColorButton(Color.lightGray);
+        lightGrayBtn = createColorButton(Color.LIGHT_GRAY);
         whiteBtn = createColorButton(Color.WHITE);
         blueBtn = createColorButton(Color.BLUE);
         cyanBtn = createColorButton(Color.CYAN);
@@ -264,26 +290,37 @@ public class Window extends JFrame implements ActionListener,Runnable {
         redBtn = createColorButton(Color.RED);
         magentaBtn = createColorButton(Color.MAGENTA);
         customBtn = createButton("custom-s","CUSTOM","Custom Color","Custom-Alt");
+        customBtn.setPreferredSize(new Dimension(50,50));
 
-        // add to panel
-        colorPalette.add(currentPenColorBtn);
-        colorPalette.add(currentPenColorLabel);
-        colorPalette.add(currentFillColorBtn);
-        colorPalette.add(currentFillColorLabel);
-        colorPalette.add(blackBtn);
-        colorPalette.add(darkGrayBtn);
-        colorPalette.add(grayBtn);
-        colorPalette.add(lightGrayBtn);
-        colorPalette.add(whiteBtn);
-        colorPalette.add(blueBtn);
-        colorPalette.add(cyanBtn);
-        colorPalette.add(greenBtn);
-        colorPalette.add(yellowBtn);
-        colorPalette.add(orangeBtn);
-        colorPalette.add(redBtn);
-        colorPalette.add(magentaBtn);
-        colorPalette.add(customBtn);
-        palettePanel.add(colorPalette,BorderLayout.SOUTH);
+        // Add components to panel
+        pLeft_up.add(currentPenColorBtn);
+        pLeft_up.add(currentPenColorLabel);
+        pLeft_down.add(currentFillColorBtn);
+        pLeft_down.add(currentFillColorLabel);
+
+        pCenter_up.add(blackBtn);
+        pCenter_up.add(darkGrayBtn);
+        pCenter_up.add(grayBtn);
+        pCenter_up.add(lightGrayBtn);
+        pCenter_up.add(whiteBtn);
+        pCenter_up.add(blueBtn);
+        pCenter_down.add(cyanBtn);
+        pCenter_down.add(greenBtn);
+        pCenter_down.add(yellowBtn);
+        pCenter_down.add(orangeBtn);
+        pCenter_down.add(redBtn);
+        pCenter_down.add(magentaBtn);
+
+        pLeft.add(pLeft_up, BorderLayout.NORTH);
+        pLeft.add(pLeft_down, BorderLayout.SOUTH);
+        pCenter.add(pCenter_up, BorderLayout.NORTH);
+        pCenter.add(pCenter_down, BorderLayout.SOUTH);
+        pRight.add(customBtn);
+
+        colorPalette.add(pLeft, BorderLayout.WEST);
+        colorPalette.add(pCenter, BorderLayout.CENTER);
+        colorPalette.add(pRight, BorderLayout.EAST);
+        palettePanel.add(colorPalette, BorderLayout.CENTER);
     }
 
 
@@ -352,6 +389,7 @@ public class Window extends JFrame implements ActionListener,Runnable {
         JButton button = new JButton();
         button.setPreferredSize(new Dimension(25,25));
         button.setBackground(color);
+        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
         button.addActionListener(new ActionListener() {
 
@@ -418,12 +456,13 @@ public class Window extends JFrame implements ActionListener,Runnable {
      */
     private JButton createButton(String imageName,String actionCommand, String toolTipText,String altText) {
         //Look for the image.
-        String imgLocation = "images/" + imageName + ".gif";
+        String imgLocation = "images/" + imageName + ".png";
         URL imageURL = Window.class.getResource(imgLocation);
 
         //Create and initialize the button.
         JButton button = new JButton();
         button.setActionCommand(actionCommand);
+        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         button.setToolTipText(toolTipText);
         button.setMaximumSize(new Dimension(75,75));
 
@@ -444,10 +483,10 @@ public class Window extends JFrame implements ActionListener,Runnable {
 //                }
                 if( isDrawingCommand(actionCommand)){
                     currentAction = actionCommand;
-                }
+                }// detect action here
 
                 commmandSelectedLabel.setText("Command: " + getCurrentAction());
-                System.out.println("Current Command: " + getCurrentAction());
+//                System.out.println("Current Command: " + getCurrentAction());
 
                 if( e.getSource() == customBtn) {
                     // Display modal color picker
@@ -489,7 +528,7 @@ public class Window extends JFrame implements ActionListener,Runnable {
                     }
                 }
 
-                if( e.getSource() == penBtn){
+                if( e.getSource() == penBtn ){
                     penClicked = true;
                     fillClicked = false;
                 }

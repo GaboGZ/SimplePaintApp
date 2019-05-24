@@ -26,6 +26,8 @@ public class Canvas extends JComponent {
     static Point drawEnd;
 
     static boolean mousePressed = false;
+    private boolean fillUsed = false;
+    private boolean penUsed = false;
 
     /**
      * Creates a Canvas for the display panel.
@@ -119,9 +121,10 @@ public class Canvas extends JComponent {
         int[][] points = {xpoints,ypoints};
 
         if (mousePressed){
-            System.out.println("Mouse pressed at " + "(" + x1 + "," + y1 + ")");
+            // Uncomment below to test this statement
+//            System.out.println("Mouse pressed at " + "(" + x1 + "," + y1 + ")");
         }else{
-            System.out.println("Mouse released at " + "(" + x2 + "," + y2 + ")");
+//            System.out.println("Mouse released at " + "(" + x2 + "," + y2 + ")");
         }
 
         return points;
@@ -268,37 +271,50 @@ public class Canvas extends JComponent {
         FileWriter fr = new FileWriter();
         String filename = "plotTest";
 
-        //todo: THIS ONE WORKS
-        if (Window.isDrawingCommand(command)){
-            if(command == "PLOT"){
-                fr.writeToFile(filename, command +" "+ x1 +" "+ y1 +" "+"\n");
-            }else if (command == "POLYGON"){
-                fr.writeToFile(filename, command +" "+ x1 +" "+ y1 +" "+ x2 +" "+ y2 + "\n");
-            }else{
-                fr.writeToFile(filename, command +" "+ x1 +" "+ y1 +" "+ x2 +" "+ y2 + "\n");
-            }
-        }
-        //todo: this if statement if being skipped
-        if( command == "PEN" || command == "FILL"){
-            fr.writeToFile(filename, command +" "+ Window.getCurrentPenColor() +"\n");
-        }
 
-        //todo: THIS ONE WORKS!
-        if(!Window.fillClicked){
-            fr.writeToFile(filename, "FILL OFF" +"\n");
-        }
-
-
-        //LINE [x1] [y1] [x2] [y2]
-        //RECTANGLE [x1] [y1] [x2] [y2]
-        //ELLIPSE [x1] [y1] [x2] [y2]
-        //PLOT [x1] [y1]
         //PEN #FF0000
         //FILL #FFFF00
         //FILL OFF
+
+        if( Window.fillCheckBox.isSelected() && !fillUsed){
+            //fr.writeToFile(filename, "FILL"+ Window.getCurrentFillColor() +"\n");
+            System.out.println("FILL " + Window.getCurrentFillColor().getRGB());
+            fillUsed = true;
+
+        }else if(!Window.fillCheckBox.isSelected() && fillUsed){
+            //fr.writeToFile(filename, "FILL OFF" +"\n");
+            System.out.println("FILL OFF");
+            fillUsed = false;
+        }else if (Window.penClicked && !penUsed){
+            System.out.println("PEN " + Window.getCurrentPenColor().getRGB());
+            penUsed = true;
+        }else if (!Window.penClicked && penUsed){
+            penUsed = false;
+        }
+//        else{
+//            System.out.println("File writer skipped if statements");
+//        }
+
+//        System.out.println("Fill state: " + fillUsed);
+
+        //PLOT [x1] [y1]
+        //LINE [x1] [y1] [x2] [y2]
+        //RECTANGLE [x1] [y1] [x2] [y2]
+        //ELLIPSE [x1] [y1] [x2] [y2]
         // POLYGON [x1] [y1] [x2] [y2] [x3…] [y3…]
 
-    }
-
-
+        if(command == "PLOT"){
+            //fr.writeToFile(filename, command +" "+ x1 +" "+ y1 +" "+"\n");
+            System.out.println(command +" "+ x1 +" "+ y1);
+            System.out.println("-----------------------------------");
+        }else if (command == "POLYGON"){
+            //fr.writeToFile(filename, command +" "+ x1 +" "+ y1 +" "+ x2 +" "+ y2 + "\n");
+            System.out.println(command +" " + x1 +" "+ y1 +" "+ x2 +" "+ y2 );
+            System.out.println("-----------------------------------");
+        }else{//Syntax for LINE, ELLIPSE and RECTANGLE
+//            fr.writeToFile(filename, command +" "+ x1 +" "+ y1 +" "+ x2 +" "+ y2 + "\n");
+            System.out.println(command +" " + x1 +" "+ y1 +" "+ x2 +" "+ y2 );
+            System.out.println("-----------------------------------");
+        }
+    }//end writeCommandToFile();
 }//end Canvas Class
