@@ -51,7 +51,7 @@ public class Window extends JFrame implements ActionListener,Runnable {
     private static Color penColor = Color.BLACK;
     private static Color fillColor = Color.WHITE;
     boolean penClicked = true;
-    boolean fillClicked = false;
+    static boolean fillClicked = false;
 
 
     @Override
@@ -587,6 +587,11 @@ public class Window extends JFrame implements ActionListener,Runnable {
         return currentAction;
     }
 
+    /**
+     * Returns true if the current command is either "PLOT","LINE","RECTANGLE","ELLIPSE" or "POLYGON"
+     * @param action
+     * @return boolean - true or false
+     */
     public static boolean isDrawingCommand(String action){
         if (action != "CLEAR" && action != "PEN" && action != "FILL"){
             return true;
@@ -596,10 +601,18 @@ public class Window extends JFrame implements ActionListener,Runnable {
         }
     }
 
+    /**
+     * Gets the current pen color
+     * @return Color - the current Pen color
+     */
     public static Color getCurrentPenColor(){
         return penColor;
     }
 
+    /**
+     * Gets the current fill color
+     * @return Color - the current fill color
+     */
     public static Color getCurrentFillColor(){
         return fillColor;
     }

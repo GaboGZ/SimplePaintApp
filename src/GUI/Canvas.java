@@ -11,6 +11,7 @@ import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Iterator;
+import FileHandler.*;
 
 public class Canvas extends JComponent {
 
@@ -59,17 +60,22 @@ public class Canvas extends JComponent {
                 String command = Window.getCurrentAction();
 
                  if( Window.isDrawingCommand(command)){
-                    s = defineShape(command, drawStart.x, drawStart.y, e.getX(), e.getY());
-                    // Add shapes, fills and colors to the ArrayLists
-                    shapes.add(s);
-                    shapePen.add(Window.getCurrentPenColor());
-                    shapeFill.add(Window.getCurrentFillColor());
 
-                    if(Window.fillCheckBox.isSelected()){
-                        shapeFilled.add(true);
-                    }else{
-                        shapeFilled.add(false);
-                    }
+                     //Defines the shape to be drawn base on the current command
+                     s = defineShape(command, drawStart.x, drawStart.y, e.getX(), e.getY());
+
+                     // Add shapes, fills and colors to the ArrayLists
+                     shapes.add(s);
+                     shapePen.add(Window.getCurrentPenColor());
+                     shapeFill.add(Window.getCurrentFillColor());
+
+                     if(Window.fillCheckBox.isSelected()){
+                         shapeFilled.add(true);
+                     }else{
+                         shapeFilled.add(false);
+                     }
+
+                     writeCommandtoFile(command, drawStart.x, drawStart.y, e.getX(), e.getY());
                  }
                 mousePressed = false;
                 getMouseCoordinates();
@@ -149,7 +155,7 @@ public class Canvas extends JComponent {
 
         }
 
-        // Guide shape used for drawing
+        // Guide shape used as drawing guide
         if (drawStart != null && drawEnd != null) {
             // Transparent guide shape
             g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.40f));
@@ -175,6 +181,7 @@ public class Canvas extends JComponent {
         //return a shape if any drawing command is selected.
         if ( action == "LINE"){
             s = drawLine(x1, y1, x2, y2);
+
         }else if (action == "ELLIPSE"){
             s = drawEllipse(x1, y1, x2, y2);
         }else if( action == "PLOT"){
@@ -182,8 +189,8 @@ public class Canvas extends JComponent {
         }else if (action == "RECTANGLE"){
             s = drawRectangle(x1, y1, x2, y2);
         }else if (action == "POLYGON"){
-            s = drawPolygon(x1, y1, x2, y2);
-//            s = drawPolyline(x1, y1, x2, y2);
+//            s = drawPolygon(x1, y1, x2, y2);
+            s = drawPolyline(x1, y1, x2, y2);
         }
         return s;
     }
@@ -224,8 +231,8 @@ public class Canvas extends JComponent {
     //todo: finish drawPolygon();
     private GeneralPath drawPolygon(int x1, int y1, int x2, int y2) {
 
-        int xPoints[] = {x1, x2, x1+50,x2+50, x1+75,x2+75};
-        int yPoints[] = {y1, y2, y1+50,y2+50,y1+75,y2+75};
+        int xPoints[] = getMouseCoordinates()[0];
+        int yPoints[] = getMouseCoordinates()[1];
         // draw GeneralPath (polygon)
         GeneralPath polygon = new GeneralPath(GeneralPath.WIND_EVEN_ODD, xPoints.length);
         // How can I feed these arrays with mouse events?
@@ -239,21 +246,59 @@ public class Canvas extends JComponent {
         return polygon;
     }
 
-
-
     private GeneralPath drawPolyline(int x1, int y1, int x2, int y2) {
 
         // draw GeneralPath (polyline)
-        int x2Points[] = {x1,x2,x1+10,x2+10};
-        int y2Points[] = {y1,y2,y1+10,y2+10};
-        GeneralPath polyline = new GeneralPath(GeneralPath.WIND_EVEN_ODD, x2Points.length);
-        polyline.moveTo (x2Points[0], y2Points[0]);
-        for ( int index = 1; index < x2Points.length; index++ ) {
-            polyline.lineTo(x2Points[index], y2Points[index]);
+        int[] xPoints = {x1,x2};
+        int[] yPoints = {y1,y2};
+
+//        int xPoints[] = getMouseCoordinates()[1];
+//        int yPoints[] = getMouseCoordinates()[1];
+
+        GeneralPath polyline = new GeneralPath(GeneralPath.WIND_EVEN_ODD, xPoints.length);
+        polyline.moveTo (xPoints[0], yPoints[0]);
+        for ( int index = 1; index < xPoints.length; index++ ) {
+            polyline.lineTo(xPoints[index], yPoints[index]);
         };
 
-//        g2.draw(polyline);
         return polyline;
     }
+
+    private void writeCommandtoFile(String command, int x1, int y1, int x2, int y2){
+        FileWriter fr = new FileWriter();
+        String filename = "plotTest";
+
+        //todo: THIS ONE WORKS
+        if (Window.isDrawingCommand(command)){
+            if(command == "PLOT"){
+                fr.writeToFile(filename, command +" "+ x1 +" "+ y1 +" "+"\n");
+            }else if (command == "POLYGON"){
+                fr.writeToFile(filename, command +" "+ x1 +" "+ y1 +" "+ x2 +" "+ y2 + "\n");
+            }else{
+                fr.writeToFile(filename, command +" "+ x1 +" "+ y1 +" "+ x2 +" "+ y2 + "\n");
+            }
+        }
+        //todo: this if statement if being skipped
+        if( command == "PEN" || command == "FILL"){
+            fr.writeToFile(filename, command +" "+ Window.getCurrentPenColor() +"\n");
+        }
+
+        //todo: THIS ONE WORKS!
+        if(!Window.fillClicked){
+            fr.writeToFile(filename, "FILL OFF" +"\n");
+        }
+
+
+        //LINE [x1] [y1] [x2] [y2]
+        //RECTANGLE [x1] [y1] [x2] [y2]
+        //ELLIPSE [x1] [y1] [x2] [y2]
+        //PLOT [x1] [y1]
+        //PEN #FF0000
+        //FILL #FFFF00
+        //FILL OFF
+        // POLYGON [x1] [y1] [x2] [y2] [x3…] [y3…]
+
+    }
+
 
 }//end Canvas Class
