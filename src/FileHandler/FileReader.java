@@ -30,9 +30,9 @@ public class FileReader {
 
         // TRY with resources
         // The BufferedReader is automatically closed after each read.
-
-        try {
-            BufferedReader reader = Files.newBufferedReader(file.toPath(), ch);
+        try (
+                BufferedReader reader = Files.newBufferedReader(file.toPath(), ch)
+        ){
             String textLine = null;
 
             while ((textLine = reader.readLine()) != null) {

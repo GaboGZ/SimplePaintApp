@@ -15,19 +15,23 @@ import FileHandler.*;
 
 public class Canvas extends JComponent {
 
-    // ArrayLists that contain each shape drawn along with
-    // that shapes stroke and fill
 
+    // Arraylists shapes information:
+    //  shapes: stores Shape form either PLOT, LINE, RECTANGLE or POLYGON
+    //  shapePenColor: stores Pen Color
+    //  shapeFillColor: stores Fill Color
+    //  shapeFilled: stores whether the shape is filled or not.
     static ArrayList<Shape> shapes = new ArrayList<Shape>();
-    static ArrayList<Color> shapePen = new ArrayList<Color>();
-    static ArrayList<Color> shapeFill = new ArrayList<Color>();
+    static ArrayList<Color> shapePenColor = new ArrayList<Color>();
+    static ArrayList<Color> shapeFillColor = new ArrayList<Color>();
     static  ArrayList<Boolean> shapeFilled = new ArrayList<>();
     static Point drawStart;
     static Point drawEnd;
 
     static boolean mousePressed = false;
     private boolean fillUsed = false;
-    private boolean penUsed = false;
+    private boolean penUsed = true;
+
 
     /**
      * Creates a Canvas for the display panel.
@@ -68,8 +72,8 @@ public class Canvas extends JComponent {
 
                      // Add shapes, fills and colors to the ArrayLists
                      shapes.add(s);
-                     shapePen.add(Window.getCurrentPenColor());
-                     shapeFill.add(Window.getCurrentFillColor());
+                     shapePenColor.add(Window.getCurrentPenColor());
+                     shapeFillColor.add(Window.getCurrentFillColor());
 
                      if(Window.fillCheckBox.isSelected()){
                          shapeFilled.add(true);
@@ -139,8 +143,8 @@ public class Canvas extends JComponent {
         g2.setStroke(new BasicStroke(3));
 
         // Iterators created to cycle through strokes and fills
-        Iterator<Color> strokeCounter = shapePen.iterator();
-        Iterator<Color> fillCounter = shapeFill.iterator();
+        Iterator<Color> strokeCounter = shapePenColor.iterator();
+        Iterator<Color> fillCounter = shapeFillColor.iterator();
         Iterator<Boolean> fillIndicator = shapeFilled.iterator();
 
         // Eliminates transparent setting below
@@ -271,50 +275,44 @@ public class Canvas extends JComponent {
         FileWriter fr = new FileWriter();
         String filename = "plotTest";
 
-
-        //PEN #FF0000
-        //FILL #FFFF00
-        //FILL OFF
-
         if( Window.fillCheckBox.isSelected() && !fillUsed){
-            //fr.writeToFile(filename, "FILL"+ Window.getCurrentFillColor() +"\n");
-            System.out.println("FILL " + Window.getCurrentFillColor().getRGB());
+            fr.writeToFile(filename, "FILL "+ ColorToHex(Window.getCurrentFillColor()) +"\n");
             fillUsed = true;
-
-        }else if(!Window.fillCheckBox.isSelected() && fillUsed){
-            //fr.writeToFile(filename, "FILL OFF" +"\n");
+            Window.fillColorChanged = false;
+        }
+        else if(!Window.fillCheckBox.isSelected() && fillUsed){
+            fr.writeToFile(filename, "FILL OFF" +"\n");
             System.out.println("FILL OFF");
             fillUsed = false;
-        }else if (Window.penClicked && !penUsed){
-            System.out.println("PEN " + Window.getCurrentPenColor().getRGB());
-            penUsed = true;
-        }else if (!Window.penClicked && penUsed){
-            penUsed = false;
         }
-//        else{
-//            System.out.println("File writer skipped if statements");
-//        }
+        else if(Window.fillColorChanged && Window.fillCheckBox.isSelected()) {
+            fr.writeToFile(filename, "FILL "+ ColorToHex(Window.getCurrentFillColor()) +"\n");
+            Window.fillColorChanged = false;
+        }
+        else if(Window.penColorChanged){
+            fr.writeToFile(filename, "PEN "+ ColorToHex(Window.getCurrentPenColor()) +"\n");
+            Window.penColorChanged = false;
+        }
 
-//        System.out.println("Fill state: " + fillUsed);
-
-        //PLOT [x1] [y1]
-        //LINE [x1] [y1] [x2] [y2]
-        //RECTANGLE [x1] [y1] [x2] [y2]
-        //ELLIPSE [x1] [y1] [x2] [y2]
-        // POLYGON [x1] [y1] [x2] [y2] [x3…] [y3…]
 
         if(command == "PLOT"){
-            //fr.writeToFile(filename, command +" "+ x1 +" "+ y1 +" "+"\n");
+            fr.writeToFile(filename, command +" "+ x1 +" "+ y1 +" "+"\n");
             System.out.println(command +" "+ x1 +" "+ y1);
-            System.out.println("-----------------------------------");
         }else if (command == "POLYGON"){
-            //fr.writeToFile(filename, command +" "+ x1 +" "+ y1 +" "+ x2 +" "+ y2 + "\n");
+            //todo:Finish file writer for polygon once drawPolygon(); is finished.
+            // POLYGON [x1] [y1] [x2] [y2] [x3…] [y3…]
+            fr.writeToFile(filename, command +" "+ x1 +" "+ y1 +" "+ x2 +" "+ y2 + "\n");
             System.out.println(command +" " + x1 +" "+ y1 +" "+ x2 +" "+ y2 );
-            System.out.println("-----------------------------------");
+
         }else{//Syntax for LINE, ELLIPSE and RECTANGLE
-//            fr.writeToFile(filename, command +" "+ x1 +" "+ y1 +" "+ x2 +" "+ y2 + "\n");
+            fr.writeToFile(filename, command +" "+ x1 +" "+ y1 +" "+ x2 +" "+ y2 + "\n");
             System.out.println(command +" " + x1 +" "+ y1 +" "+ x2 +" "+ y2 );
-            System.out.println("-----------------------------------");
         }
     }//end writeCommandToFile();
+
+
+    public static String ColorToHex(Color color) {
+        String rgb = Integer.toHexString(color.getRGB());
+        return "#"+rgb.substring(2).toUpperCase();
+    }
 }//end Canvas Class

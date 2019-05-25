@@ -17,7 +17,7 @@ public class FileVecFilter extends FileFilter {
         String file = f.getName();
 
         if(file != null) {
-            if(file.contains(".txt")){
+            if(file.contains(".VEC")){
                 return true;
             }
         }else{
@@ -29,8 +29,7 @@ public class FileVecFilter extends FileFilter {
 
     @Override
     public String getDescription() {
-        // todo: Should be changed to .vec files
-        return "just '.txt' file";
+        return "just '.VEC' files";
     }
 }
 

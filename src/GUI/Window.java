@@ -1,7 +1,6 @@
 package GUI;
 
 import javax.swing.*;
-import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 import java.awt.*;
 import java.awt.event.*;
@@ -52,10 +51,14 @@ public class Window extends JFrame implements ActionListener,Runnable {
     private JLabel checkBoxLabel;
     private JButton currentFillColorBtn;
     private JLabel currentFillColorLabel;
+
+    //Globals that manage the state of the program
     private static Color penColor = Color.BLACK;
     private static Color fillColor = Color.WHITE;
     static boolean penClicked = true;
     static boolean fillClicked = false;
+    static boolean penColorChanged = false;
+    static boolean fillColorChanged = false;
 
 
     @Override
@@ -478,12 +481,9 @@ public class Window extends JFrame implements ActionListener,Runnable {
             @Override
             public void actionPerformed(ActionEvent e) {
 
-//                if (actionCommand != "CLEAR" && actionCommand != "PEN" && actionCommand != "FILL"){
-//                    currentAction = actionCommand;
-//                }
                 if( isDrawingCommand(actionCommand)){
                     currentAction = actionCommand;
-                }// detect action here
+                }
 
                 commmandSelectedLabel.setText("Command: " + getCurrentAction());
 //                System.out.println("Current Command: " + getCurrentAction());
@@ -521,8 +521,8 @@ public class Window extends JFrame implements ActionListener,Runnable {
 
                     if( clearDrawings == 0){
                         Canvas.shapes.clear();
-                        Canvas.shapePen.clear();
-                        Canvas.shapeFill.clear();
+                        Canvas.shapePenColor.clear();
+                        Canvas.shapeFillColor.clear();
                         Canvas.shapeFilled.clear();
                         repaint();
                     }
@@ -536,7 +536,6 @@ public class Window extends JFrame implements ActionListener,Runnable {
                     penClicked = false;
                     fillClicked = true;
                 }
-
 
             }
         });
@@ -600,7 +599,9 @@ public class Window extends JFrame implements ActionListener,Runnable {
         if(penClicked){
             pc = colorButtonClicked.getBackground();
             currentPenColorBtn.setBackground(pc);
-            return pc;
+            penColorChanged = true;
+        }else{
+            penColorChanged = false;
         }
         return pc;
     }
@@ -618,6 +619,9 @@ public class Window extends JFrame implements ActionListener,Runnable {
         if (fillClicked){
             fc = colorButtonClicked.getBackground();
             currentFillColorBtn.setBackground(fc);
+            fillColorChanged = true;
+        }else{
+            fillColorChanged = false;
         }
         return fc;
     }
