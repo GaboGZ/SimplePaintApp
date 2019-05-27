@@ -1,5 +1,7 @@
 package GUI;
 
+import FileHandler.FileReader;
+
 import javax.swing.*;
 import javax.swing.border.EtchedBorder;
 import java.awt.*;
@@ -24,7 +26,7 @@ public class Window extends JFrame implements ActionListener,Runnable {
     private JPanel pnlUp, pnlUp_Up, pnlUp_Down, toolsPanel, palettePanel;
     private JPanel pnlLeft, pnlRight;
     private JPanel pnlDown, pnlDown_Up, pnlDown_Down;
-    private JComponent pnlDisplay;
+    private static Canvas pnlDisplay;
 //    private DrawArea drawArea;
 
     private JToolBar toolBar;
@@ -94,8 +96,10 @@ public class Window extends JFrame implements ActionListener,Runnable {
 
     }
 
+    /**
+     * Created the main panel that contains all other panels.
+     */
     private void createMainPanel(){
-
         // Create main Panel
         mainPanel = createPanel(Color.WHITE, new BorderLayout());
         // Child Panels
@@ -103,7 +107,7 @@ public class Window extends JFrame implements ActionListener,Runnable {
     }
 
     /**
-     * Creates all the required panels
+     * Creates all the required child panels
      */
     public void createChildPanels(){
         // Upper Panels
@@ -130,8 +134,7 @@ public class Window extends JFrame implements ActionListener,Runnable {
         pnlDown.add(pnlDown_Up,BorderLayout.NORTH);
         pnlDown.add(pnlDown_Down, BorderLayout.SOUTH);
 
-        pnlDisplay = new Canvas(); // Center Panel | Use to draw shapes
-
+        pnlDisplay = new Canvas(); // Center Panel | Used to draw shapes
 
         //Add child panels to the Main Panel
         mainPanel.add(pnlUp, BorderLayout.NORTH);
@@ -142,6 +145,9 @@ public class Window extends JFrame implements ActionListener,Runnable {
 
     }
 
+    /**
+     * Create the top menu bar and necessary components
+     */
     private void createMenuBar() {
         //Menu Bar
         menuBar = new JMenuBar();
@@ -195,6 +201,9 @@ public class Window extends JFrame implements ActionListener,Runnable {
     }
 
 
+    /**
+     * Create a new instance of the FileChooser class.
+     */
     public void createFileChooser(){
 
         fileChooser = new JFileChooser();
@@ -206,7 +215,7 @@ public class Window extends JFrame implements ActionListener,Runnable {
     }
 
     /**
-     * Creates a Toolbar containing the drawing buttons.
+     * Creates an instance of JToolbar containing the drawing buttons.
      */
     private void createToolbar(){
         toolBar = new JToolBar();
@@ -214,7 +223,7 @@ public class Window extends JFrame implements ActionListener,Runnable {
         toolBar.setFloatable(false);    //fixed toolBar
         toolBar.setRollover(true);      //displays info when hovering
 
-        //Create ToolBar
+        //Create ToolBar buttons
         clearBtn = createButton("clear-s","CLEAR","Clear","Clear-Alt");
         penBtn = createButton("pen-s","PEN","Pen color","Pen-Alt");
         fillBtn = createButton("fill-s","FILL","Fill color","Fill-Alt");
@@ -247,7 +256,9 @@ public class Window extends JFrame implements ActionListener,Runnable {
         toolsPanel.add(toolBar);
     }
 
-
+    /**
+     * Create a palette of basic colors.
+     */
     public void createColorPalette(){
 
         colorPalette = createPanel(Color.WHITE, new BorderLayout());
@@ -326,7 +337,9 @@ public class Window extends JFrame implements ActionListener,Runnable {
         palettePanel.add(colorPalette, BorderLayout.CENTER);
     }
 
-
+    /**
+     * Creates the status bar.
+     */
     public void createStatusBar(){
 
         statusBar = createPanel(Color.WHITE, new BorderLayout());
@@ -357,7 +370,7 @@ public class Window extends JFrame implements ActionListener,Runnable {
     //BEGIN HELPER METHODS | Note: todo Create an interface
 
     /**
-     * Creates a standard JPanel
+     * Creates a standard JPanel and set the background color to the given color.
      * @param c
      * @return
      */
@@ -368,10 +381,10 @@ public class Window extends JFrame implements ActionListener,Runnable {
     }
 
     /**
-     * Creates a possible Parent JPanel
-     * @param c
-     * @param layout
-     * @return
+     * Creates a possible Parent JPanel. Sets the LayoutManager to the given layout.
+     * @param c Color
+     * @param layout LayoutManager
+     * @return a Jpanel
      */
     private JPanel createPanel(Color c, LayoutManager layout){
         JPanel panel = new JPanel();
@@ -508,6 +521,7 @@ public class Window extends JFrame implements ActionListener,Runnable {
                 }
                 if( e.getSource() == clearBtn) {
 
+                    //Dialog
                     Object[] options = {"Ok", "Cancel"};
                     int clearDrawings = JOptionPane.showOptionDialog( pnlDisplay,
                             "This action will clear all the drawings and cannot be undone.\n"
@@ -518,12 +532,9 @@ public class Window extends JFrame implements ActionListener,Runnable {
                             null,
                             options,
                             options[1]);
-
+                    //If "Ok" clear all drawings
                     if( clearDrawings == 0){
-                        Canvas.shapes.clear();
-                        Canvas.shapePenColor.clear();
-                        Canvas.shapeFillColor.clear();
-                        Canvas.shapeFilled.clear();
+                        pnlDisplay.clearDrawings();
                         repaint();
                     }
                 }
@@ -552,35 +563,28 @@ public class Window extends JFrame implements ActionListener,Runnable {
             int returnVal = fileChooser.showOpenDialog(this);
 
             if (returnVal == JFileChooser.APPROVE_OPTION) {
+                String dir = fileChooser.getCurrentDirectory().toString();
                 File file = fileChooser.getSelectedFile();
-                //todo: Use FileReader
-                //This is where a real application would open the file.
-                System.out.println("Opening: " + file.getName() + "." + "\n");
-
+                FileReader fr = new FileReader();
+                fr.readFile(dir,file.getName());
             } else {
                 System.out.println("Open command cancelled by user." + "\n");
             }
         }
 
         if( e.getSource() == New) {
-            System.out.println( "Menu Item 'New' was pressed. ");
             //todo: Create new File
         }
         if( e.getSource() == Save) {
-            System.out.println( "Menu Item  'Save' was pressed. ");
             //todo: Save File
-
         }
         if( e.getSource() == SaveAs) {
-            System.out.println( "Menu Item 'Save as' was pressed. ");
             //todo: Save file as 'filename'
         }
         if( e.getSource() == Options) {
-            System.out.println( "Menu Item 'Options' was pressed. ");
             //todo: check out specifications before attempting this.
         }
         if( e.getSource() == Close) {
-            System.out.println( "Menu Item s'Close' was pressed. ");
             //todo: Close program.
             //Show dialog to save the file
         }
@@ -605,6 +609,10 @@ public class Window extends JFrame implements ActionListener,Runnable {
         }
         return pc;
     }
+
+//    public static void setPenColor(Color color){
+//        this.penColor = color;
+//    }
 
     /**
      * Sets the color of the fill if an only the Fill Button has been clicked. Otherwise, leaves
@@ -660,4 +668,7 @@ public class Window extends JFrame implements ActionListener,Runnable {
         return fillColor;
     }
 
+    public static Canvas getDisplayPanel(){
+        return pnlDisplay;
+    }
 }

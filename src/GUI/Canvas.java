@@ -6,14 +6,17 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.awt.geom.Ellipse2D;
-import java.awt.geom.GeneralPath;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
 import FileHandler.*;
 
 public class Canvas extends JComponent {
+
+    double canvasWidth;
+    double canvasHeight;
 
 
     // Arraylists shapes information:
@@ -21,23 +24,25 @@ public class Canvas extends JComponent {
     //  shapePenColor: stores Pen Color
     //  shapeFillColor: stores Fill Color
     //  shapeFilled: stores whether the shape is filled or not.
-    static ArrayList<Shape> shapes = new ArrayList<Shape>();
-    static ArrayList<Color> shapePenColor = new ArrayList<Color>();
-    static ArrayList<Color> shapeFillColor = new ArrayList<Color>();
-    static  ArrayList<Boolean> shapeFilled = new ArrayList<>();
+    public ArrayList<Shape> shapes = new ArrayList<Shape>();
+    public ArrayList<Color> shapePenColor = new ArrayList<Color>();
+    public ArrayList<Color> shapeFillColor = new ArrayList<Color>();
+    public ArrayList<Boolean> shapeFilled = new ArrayList<>();
     static Point drawStart;
     static Point drawEnd;
 
     static boolean mousePressed = false;
     private boolean fillUsed = false;
-    private boolean penUsed = true;
-
 
     /**
      * Creates a Canvas for the display panel.
      * Adds a MouseListener to detect mouse events.
      */
     public Canvas() {
+
+        setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+
+
         this.addMouseListener(new MouseAdapter() {
 
             /**
@@ -45,7 +50,6 @@ public class Canvas extends JComponent {
              * @param e
              */
             public void mousePressed(MouseEvent e) {
-
                 drawStart = new Point(e.getX(), e.getY());
                 drawEnd = drawStart;
                 mousePressed = true;
@@ -59,7 +63,10 @@ public class Canvas extends JComponent {
              */
             public void mouseReleased(MouseEvent e) {
 
-//                drawEnd = new Point(e.getX(), e.getY());
+                canvasWidth = getSize().getWidth();
+                canvasHeight = getSize().getHeight();
+
+                drawEnd = new Point(e.getX(), e.getY());
 
                 // Creates a shape based on the current currentAction command
                 Shape s;
@@ -68,7 +75,7 @@ public class Canvas extends JComponent {
                  if( Window.isDrawingCommand(command)){
 
                      //Defines the shape to be drawn base on the current command
-                     s = defineShape(command, drawStart.x, drawStart.y, e.getX(), e.getY());
+                     s = defineShape(command,  drawStart.x/canvasWidth,  drawStart.y/canvasHeight,  drawEnd.x/canvasWidth, drawEnd.y/canvasHeight);
 
                      // Add shapes, fills and colors to the ArrayLists
                      shapes.add(s);
@@ -81,7 +88,7 @@ public class Canvas extends JComponent {
                          shapeFilled.add(false);
                      }
 
-                     writeCommandtoFile(command, drawStart.x, drawStart.y, e.getX(), e.getY());
+                     writeCommandtoFile(command,  drawStart.x/canvasWidth,  drawStart.y/canvasHeight,  drawEnd.x/canvasWidth, drawEnd.y/canvasHeight);
                  }
                 mousePressed = false;
                 getMouseCoordinates();
@@ -130,9 +137,7 @@ public class Canvas extends JComponent {
         }else{
 //            System.out.println("Mouse released at " + "(" + x2 + "," + y2 + ")");
         }
-
         return points;
-
 
     }
 
@@ -169,7 +174,7 @@ public class Canvas extends JComponent {
             g2.setPaint(Color.LIGHT_GRAY);
 
             // Create new shape based on current command
-            Shape shape = defineShape(Window.getCurrentAction(),drawStart.x, drawStart.y, drawEnd.x, drawEnd.y);
+            Shape shape = defineShape(Window.getCurrentAction(),drawStart.x/canvasWidth,  drawStart.y/canvasHeight,  drawEnd.x/canvasWidth, drawEnd.y/canvasHeight);
             g2.draw(shape);
         }
     }//End Paint Method
@@ -180,98 +185,105 @@ public class Canvas extends JComponent {
      * @param action
      * @return
      */
-    public Shape defineShape(String action, int x1,int y1, int x2, int y2){
+    public Shape defineShape(String action, double x1,double y1, double x2, double y2){
 
+        DecimalFormat df = new DecimalFormat("#.#####");
+
+        double x_1 = Double.parseDouble(df.format(x1 * canvasWidth));
+        double y_1 = Double.parseDouble(df.format(y1 * canvasHeight));
+        double x_2 = Double.parseDouble(df.format(x2 * canvasWidth));
+        double y_2 = Double.parseDouble(df.format(y2 * canvasHeight));
         // return the guide shape if none command is selected.
-        Shape s = drawRectangle(x1, y1, x2, y2);
+        Shape s = drawRectangle(x_1,y_1,x_2,y_2);
 
         //return a shape if any drawing command is selected.
         if ( action == "LINE"){
-            s = drawLine(x1, y1, x2, y2);
-
-        }else if (action == "ELLIPSE"){
-            s = drawEllipse(x1, y1, x2, y2);
-        }else if( action == "PLOT"){
-            s = drawPlot(x1, y1, x2, y2);
-        }else if (action == "RECTANGLE"){
-            s = drawRectangle(x1, y1, x2, y2);
-        }else if (action == "POLYGON"){
+            s = drawLine(x_1,y_1,x_2,y_2);
+        }
+        else if (action == "ELLIPSE"){
+            s = drawEllipse(x_1,y_1,x_2,y_2);
+        }
+        else if( action == "PLOT"){
+            s = drawPlot(x_1,y_1,x_2,y_2);
+        }
+        else if (action == "RECTANGLE"){
+            s = drawRectangle(x_1,y_1,x_2,y_2);
+        }
+        else if (action == "POLYGON"){
 //            s = drawPolygon(x1, y1, x2, y2);
-            s = drawPolyline(x1, y1, x2, y2);
+//            s = drawPolyline(x1, y1, x2, y2);
         }
         return s;
     }
 
-    private Rectangle2D.Float drawRectangle(int x1, int y1, int x2, int y2) {
+    private Rectangle2D.Double drawRectangle(double x1, double y1, double x2, double y2) {
         // Get the top left hand corner for the shape
         // Math.min returns the points closest to 0
 
-        int x = Math.min(x1, x2);
-        int y = Math.min(y1, y2);
+        double x = Math.min(x1, x2);
+        double y = Math.min(y1, y2);
 
         // Gets the difference between the coordinates and
+        double width = Math.abs(x1 - x2);
+        double height = Math.abs(y1 - y2);
 
-        int width = Math.abs(x1 - x2);
-        int height = Math.abs(y1 - y2);
-
-        return new Rectangle2D.Float(
-                x, y, width, height);
+        return new Rectangle2D.Double(x, y, width, height);
     }
 
-    private Ellipse2D.Float drawEllipse(int x1, int y1, int x2, int y2) {
-        int x = Math.min(x1, x2);
-        int y = Math.min(y1, y2);
-        int width = Math.abs(x1 - x2);
-        int height = Math.abs(y1 - y2);
+    private Ellipse2D.Double drawEllipse(double x1, double y1, double x2, double y2) {
+        double x = Math.min(x1, x2);
+        double y = Math.min(y1, y2);
+        double width = Math.abs(x1 - x2);
+        double height = Math.abs(y1 - y2);
 
-        return new Ellipse2D.Float(x, y, width, height);
+        return new Ellipse2D.Double(x, y, width, height);
     }
 
-    private Line2D.Float drawLine(int x1, int y1, int x2, int y2){
-        return new Line2D.Float(x1,y1,x2,y2);
+    public Line2D.Double drawLine(double x1, double y1, double x2, double y2){
+        return new Line2D.Double(x1,y1,x2,y2);
     }
 
-    private Line2D.Float drawPlot(int x1, int y1, int x2, int y2){
-        return new Line2D.Float(x1,y1,x1,y1);
+    private Line2D.Double drawPlot(double x1, double y1, double x2, double y2){
+        return new Line2D.Double(x1,y1,x1,y1);
     }
 
     //todo: finish drawPolygon();
-    private GeneralPath drawPolygon(int x1, int y1, int x2, int y2) {
+//    private GeneralPath drawPolygon(double x1, double y1, double x2, double y2) {
+//
+////        double xPoints[] =  getMouseCoordinates()[0];
+////        double yPoints[] = getMouseCoordinates()[1];
+//        // draw GeneralPath (polygon)
+//        GeneralPath polygon = new GeneralPath(GeneralPath.WIND_EVEN_ODD, xPoints.length);
+//        // How can I feed these arrays with mouse events?
+//
+//        polygon.moveTo(xPoints[0], yPoints[0]);
+//        for (int index = 1; index < xPoints.length; index++) {
+//            polygon.lineTo(xPoints[index], yPoints[index]);
+//        }
+//        polygon.closePath();
+//
+//        return polygon;
+//    }
 
-        int xPoints[] = getMouseCoordinates()[0];
-        int yPoints[] = getMouseCoordinates()[1];
-        // draw GeneralPath (polygon)
-        GeneralPath polygon = new GeneralPath(GeneralPath.WIND_EVEN_ODD, xPoints.length);
-        // How can I feed these arrays with mouse events?
+//    private GeneralPath drawPolyline(double x1, double y1, double x2, double y2) {
+//
+//        // draw GeneralPath (polyline)
+//        int[] xPoints = {x1,x2};
+//        int[] yPoints = {y1,y2};
+//
+////        int xPoints[] = getMouseCoordinates()[1];
+////        int yPoints[] = getMouseCoordinates()[1];
+//
+//        GeneralPath polyline = new GeneralPath(GeneralPath.WIND_EVEN_ODD, xPoints.length);
+//        polyline.moveTo (xPoints[0], yPoints[0]);
+//        for ( int index = 1; index < xPoints.length; index++ ) {
+//            polyline.lineTo(xPoints[index], yPoints[index]);
+//        };
+//
+//        return polyline;
+//    }
 
-        polygon.moveTo(xPoints[0], yPoints[0]);
-        for (int index = 1; index < xPoints.length; index++) {
-            polygon.lineTo(xPoints[index], yPoints[index]);
-        }
-        polygon.closePath();
-
-        return polygon;
-    }
-
-    private GeneralPath drawPolyline(int x1, int y1, int x2, int y2) {
-
-        // draw GeneralPath (polyline)
-        int[] xPoints = {x1,x2};
-        int[] yPoints = {y1,y2};
-
-//        int xPoints[] = getMouseCoordinates()[1];
-//        int yPoints[] = getMouseCoordinates()[1];
-
-        GeneralPath polyline = new GeneralPath(GeneralPath.WIND_EVEN_ODD, xPoints.length);
-        polyline.moveTo (xPoints[0], yPoints[0]);
-        for ( int index = 1; index < xPoints.length; index++ ) {
-            polyline.lineTo(xPoints[index], yPoints[index]);
-        };
-
-        return polyline;
-    }
-
-    private void writeCommandtoFile(String command, int x1, int y1, int x2, int y2){
+    private void writeCommandtoFile(String command, double x1, double y1, double x2, double y2){
         FileWriter fr = new FileWriter();
         String filename = "plotTest";
 
@@ -296,7 +308,7 @@ public class Canvas extends JComponent {
 
 
         if(command == "PLOT"){
-            fr.writeToFile(filename, command +" "+ x1 +" "+ y1 +" "+"\n");
+            fr.writeToFile(filename, command +" "+ x1+" "+ y1 +" "+"\n");
             System.out.println(command +" "+ x1 +" "+ y1);
         }else if (command == "POLYGON"){
             //todo:Finish file writer for polygon once drawPolygon(); is finished.
@@ -311,8 +323,26 @@ public class Canvas extends JComponent {
     }//end writeCommandToFile();
 
 
+    /**
+     * Return the HEX format of a given Color
+     * @param color
+     * @return
+     */
     public static String ColorToHex(Color color) {
         String rgb = Integer.toHexString(color.getRGB());
         return "#"+rgb.substring(2).toUpperCase();
     }
+
+    /**
+     * Clears all the drawing from the display panel.
+     */
+    public void clearDrawings(){
+        shapes.clear();
+        shapePenColor.clear();
+        shapeFillColor.clear();
+        shapeFilled.clear();
+    }
+
+
+
 }//end Canvas Class
