@@ -1,7 +1,13 @@
 package FileHandler;
 
+import GUI.Window.*;
+
+import java.awt.*;
 import java.nio.file.*;
 import java.io.*;
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+
 
 import static java.nio.file.StandardOpenOption.APPEND;
 import static java.nio.file.StandardOpenOption.CREATE;

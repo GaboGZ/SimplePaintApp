@@ -16,6 +16,9 @@ public class Window extends JFrame implements ActionListener,Runnable {
     //Constants
     private static final int WIDTH = 600;
     private static final int HEIGHT = 700;
+    private static final int MIN_WIDTH = 700;
+    private static final int MIN_HEIGHT = 700;
+
 
     //Elements
     private JMenuBar menuBar;
@@ -44,7 +47,9 @@ public class Window extends JFrame implements ActionListener,Runnable {
     private JFileChooser fileChooser;
 
     JPanel statusBar;
-    JLabel coordLabel, commmandSelectedLabel, zoomLabel;
+    static JLabel coordLabel;
+    JLabel commmandSelectedLabel;
+    JLabel zoomLabel;
 
     private static String currentAction = "PEN";
     private JButton currentPenColorBtn;
@@ -76,7 +81,8 @@ public class Window extends JFrame implements ActionListener,Runnable {
         //Set GUI
         setTitle("CAB302 | Java Project");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(WIDTH,HEIGHT);
+//        setSize(WIDTH,HEIGHT);
+        setMinimumSize(new Dimension(MIN_WIDTH, MIN_HEIGHT));
         setLayout(new BorderLayout());
 
         //Add components
@@ -346,8 +352,7 @@ public class Window extends JFrame implements ActionListener,Runnable {
         statusBar.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
 
         coordLabel = new JLabel();
-
-        coordLabel.setText("(x,y)= " );
+        coordLabel.setText("(x,y): (0.0,0.0)     ");
 
         commmandSelectedLabel = new JLabel();
         commmandSelectedLabel.setText("Current Command: " + getCurrentAction());
@@ -534,7 +539,7 @@ public class Window extends JFrame implements ActionListener,Runnable {
                             options[1]);
                     //If "Ok" clear all drawings
                     if( clearDrawings == 0){
-                        pnlDisplay.clearDrawings();
+                        pnlDisplay.clearDrawings(true);
                         repaint();
                     }
                 }

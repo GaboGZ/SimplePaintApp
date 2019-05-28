@@ -1,6 +1,7 @@
 package GUI;
 
 import javax.swing.*;
+import javax.swing.border.EtchedBorder;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -15,9 +16,9 @@ import FileHandler.*;
 
 public class Canvas extends JComponent {
 
-    double canvasWidth;
-    double canvasHeight;
-
+    static double canvasWidth;
+    static double canvasHeight;
+    private JFileChooser fileChooser;
 
     // Arraylists shapes information:
     //  shapes: stores Shape form either PLOT, LINE, RECTANGLE or POLYGON
@@ -42,6 +43,8 @@ public class Canvas extends JComponent {
 
         setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 
+//        canvasWidth = getSize().getWidth();
+//        canvasHeight = getSize().getHeight();
 
         this.addMouseListener(new MouseAdapter() {
 
@@ -75,7 +78,7 @@ public class Canvas extends JComponent {
                  if( Window.isDrawingCommand(command)){
 
                      //Defines the shape to be drawn base on the current command
-                     s = defineShape(command,  drawStart.x/canvasWidth,  drawStart.y/canvasHeight,  drawEnd.x/canvasWidth, drawEnd.y/canvasHeight);
+                     s = defineShape(command,  drawStart.x,  drawStart.y,  drawEnd.x, drawEnd.y);
 
                      // Add shapes, fills and colors to the ArrayLists
                      shapes.add(s);
@@ -88,15 +91,15 @@ public class Canvas extends JComponent {
                          shapeFilled.add(false);
                      }
 
-                     writeCommandtoFile(command,  drawStart.x/canvasWidth,  drawStart.y/canvasHeight,  drawEnd.x/canvasWidth, drawEnd.y/canvasHeight);
+                     writeCommandToFile(command,  drawStart.x/getWidth(),  drawStart.y/getHeight(),  drawEnd.x/getWidth(), drawEnd.y/getHeight());
                  }
-                mousePressed = false;
-                getMouseCoordinates();
 
-                drawStart = null;
-                drawEnd = null;
+                 mousePressed = false;
+                 getMouseCoordinates();
+                 drawStart = null;
+                 drawEnd = null;
 
-                repaint(); // IMPORTANT! -> repaint the drawing area
+                 repaint(); // IMPORTANT! -> repaint the drawing area
             }
         });
 
@@ -106,6 +109,7 @@ public class Canvas extends JComponent {
         this.addMouseMotionListener(new MouseMotionAdapter() {
             public void mouseDragged(MouseEvent e) {
                 drawEnd = new Point(e.getX(), e.getY());
+                Window.coordLabel.setText("(x,y): "+ "(" + drawEnd.x + "," + drawEnd.y + ")     ");
                 repaint();
             }
         });
@@ -113,32 +117,23 @@ public class Canvas extends JComponent {
     }// end Canvas constructor
 
 
-    /**
-     * Detects coordinates when mouse is pressed and when the mouse is released
-     * @return points - A 2D array containing x points and y points.
-     */
 
-    public static int[][] getMouseCoordinates(){
-        // todo: finish getMouseCoordinates();
+    public void getMouseCoordinates(){
+
         // Detected when mouse is pressed
         int x1 = drawStart.x;
         int y1 = drawStart.y;
+
         // Detected when mouse is released
         int x2 = drawEnd.x;
         int y2 = drawEnd.y;
 
-        int[] xpoints = {x1,x2};
-        int[] ypoints = {y1,y2};
-        int[][] points = {xpoints,ypoints};
-
         if (mousePressed){
-            // Uncomment below to test this statement
-//            System.out.println("Mouse pressed at " + "(" + x1 + "," + y1 + ")");
-        }else{
-//            System.out.println("Mouse released at " + "(" + x2 + "," + y2 + ")");
+            Window.coordLabel.setText("(x,y): "+ "(" + x1 + "," + y1 + ")     ");
         }
-        return points;
-
+        else{
+            Window.coordLabel.setText("(x,y): "+ "(" + x2 + "," + y2 + ")     ");
+        }
     }
 
     public void paint(Graphics g){
@@ -174,7 +169,7 @@ public class Canvas extends JComponent {
             g2.setPaint(Color.LIGHT_GRAY);
 
             // Create new shape based on current command
-            Shape shape = defineShape(Window.getCurrentAction(),drawStart.x/canvasWidth,  drawStart.y/canvasHeight,  drawEnd.x/canvasWidth, drawEnd.y/canvasHeight);
+            Shape shape = defineShape(Window.getCurrentAction(), drawStart.x,  drawStart.y,  drawEnd.x, drawEnd.y);
             g2.draw(shape);
         }
     }//End Paint Method
@@ -187,27 +182,21 @@ public class Canvas extends JComponent {
      */
     public Shape defineShape(String action, double x1,double y1, double x2, double y2){
 
-        DecimalFormat df = new DecimalFormat("#.#####");
-
-        double x_1 = Double.parseDouble(df.format(x1 * canvasWidth));
-        double y_1 = Double.parseDouble(df.format(y1 * canvasHeight));
-        double x_2 = Double.parseDouble(df.format(x2 * canvasWidth));
-        double y_2 = Double.parseDouble(df.format(y2 * canvasHeight));
         // return the guide shape if none command is selected.
-        Shape s = drawRectangle(x_1,y_1,x_2,y_2);
+        Shape s = drawRectangle(x1,y1,x2,y2);
 
         //return a shape if any drawing command is selected.
         if ( action == "LINE"){
-            s = drawLine(x_1,y_1,x_2,y_2);
+            s = drawLine(x1,y1,x2,y2);
         }
         else if (action == "ELLIPSE"){
-            s = drawEllipse(x_1,y_1,x_2,y_2);
+            s = drawEllipse(x1,y1,x2,y2);
         }
         else if( action == "PLOT"){
-            s = drawPlot(x_1,y_1,x_2,y_2);
+            s = drawPlot(x1,y1,x2,y2);
         }
         else if (action == "RECTANGLE"){
-            s = drawRectangle(x_1,y_1,x_2,y_2);
+            s = drawRectangle(x1,y1,x2,y2);
         }
         else if (action == "POLYGON"){
 //            s = drawPolygon(x1, y1, x2, y2);
@@ -217,16 +206,10 @@ public class Canvas extends JComponent {
     }
 
     private Rectangle2D.Double drawRectangle(double x1, double y1, double x2, double y2) {
-        // Get the top left hand corner for the shape
-        // Math.min returns the points closest to 0
-
         double x = Math.min(x1, x2);
         double y = Math.min(y1, y2);
-
-        // Gets the difference between the coordinates and
         double width = Math.abs(x1 - x2);
         double height = Math.abs(y1 - y2);
-
         return new Rectangle2D.Double(x, y, width, height);
     }
 
@@ -235,11 +218,10 @@ public class Canvas extends JComponent {
         double y = Math.min(y1, y2);
         double width = Math.abs(x1 - x2);
         double height = Math.abs(y1 - y2);
-
         return new Ellipse2D.Double(x, y, width, height);
     }
 
-    public Line2D.Double drawLine(double x1, double y1, double x2, double y2){
+    private Line2D.Double drawLine(double x1, double y1, double x2, double y2){
         return new Line2D.Double(x1,y1,x2,y2);
     }
 
@@ -283,9 +265,37 @@ public class Canvas extends JComponent {
 //        return polyline;
 //    }
 
-    private void writeCommandtoFile(String command, double x1, double y1, double x2, double y2){
+    public ArrayList<Double> roundCoordinates(double x1, double y1, double x2, double y2){
+        ArrayList<Double> roundedCoordinates = new ArrayList<>();
+        DecimalFormat df = new DecimalFormat("#.#####");
+
+        try {
+            double x_1 = Double.parseDouble(df.format(x1));
+            double y_1 = Double.parseDouble(df.format(y1));
+            double x_2 = Double.parseDouble(df.format(x2));
+            double y_2 = Double.parseDouble(df.format(y2));
+            roundedCoordinates.add(x_1);
+            roundedCoordinates.add(y_1);
+            roundedCoordinates.add(x_2);
+            roundedCoordinates.add(y_2);
+        } catch (NumberFormatException e) {
+            //e.printStackTrace();
+        }
+        return roundedCoordinates;
+
+    }
+
+    private void writeCommandToFile(String command, double x_1, double y_1, double x_2, double y_2){
+
         FileWriter fr = new FileWriter();
         String filename = "plotTest";
+
+        ArrayList<Double> c = roundCoordinates(x_1,y_1,x_2,y_2);
+        double x1 = c.get(0);
+        double y1 = c.get(1);
+        double x2 = c.get(2);
+        double y2 = c.get(3);
+
 
         if( Window.fillCheckBox.isSelected() && !fillUsed){
             fr.writeToFile(filename, "FILL "+ ColorToHex(Window.getCurrentFillColor()) +"\n");
@@ -306,19 +316,20 @@ public class Canvas extends JComponent {
             Window.penColorChanged = false;
         }
 
+        if(Window.isDrawingCommand(command)) {
+            if (command == "PLOT") {
+                fr.writeToFile(filename, command + " " + x1 + " " + y1 + " " + "\n");
+                System.out.println(command + " " + x1 + " " + y1);
+            } else if (command == "POLYGON") {
+                //todo:Finish file writer for polygon once drawPolygon(); is finished.
+                // POLYGON [x1] [y1] [x2] [y2] [x3…] [y3…]
+                fr.writeToFile(filename, command + " " + x1 + " " + y1 + " " + x2 + " " + y2 + "\n");
+                System.out.println(command + " " + x1 + " " + y1 + " " + x2 + " " + y2);
 
-        if(command == "PLOT"){
-            fr.writeToFile(filename, command +" "+ x1+" "+ y1 +" "+"\n");
-            System.out.println(command +" "+ x1 +" "+ y1);
-        }else if (command == "POLYGON"){
-            //todo:Finish file writer for polygon once drawPolygon(); is finished.
-            // POLYGON [x1] [y1] [x2] [y2] [x3…] [y3…]
-            fr.writeToFile(filename, command +" "+ x1 +" "+ y1 +" "+ x2 +" "+ y2 + "\n");
-            System.out.println(command +" " + x1 +" "+ y1 +" "+ x2 +" "+ y2 );
-
-        }else{//Syntax for LINE, ELLIPSE and RECTANGLE
-            fr.writeToFile(filename, command +" "+ x1 +" "+ y1 +" "+ x2 +" "+ y2 + "\n");
-            System.out.println(command +" " + x1 +" "+ y1 +" "+ x2 +" "+ y2 );
+            } else {//Syntax for LINE, ELLIPSE and RECTANGLE
+                fr.writeToFile(filename, command + " " + x1 + " " + y1 + " " + x2 + " " + y2 + "\n");
+                System.out.println(command + " " + x1 + " " + y1 + " " + x2 + " " + y2);
+            }
         }
     }//end writeCommandToFile();
 
@@ -334,14 +345,64 @@ public class Canvas extends JComponent {
     }
 
     /**
-     * Clears all the drawing from the display panel.
+     * Clear all drawings from the display panel.
+     * <ul><li>If forcedAction == true, clears drawings.</li>
+     * <li>If forcedAction == false, prompts the user to save current drawings.</li>
+     * <li>Returns true if all drawing were cleared.</li>
+     * </ul>
+     * @param forcedAction
+     * @return boolean
      */
-    public void clearDrawings(){
-        shapes.clear();
-        shapePenColor.clear();
-        shapeFillColor.clear();
-        shapeFilled.clear();
+    public boolean clearDrawings(boolean forcedAction){
+
+        if(forcedAction){
+            shapes.clear();
+            shapePenColor.clear();
+            shapeFillColor.clear();
+            shapeFilled.clear();
+            repaint();
+            return true;
+        }
+        else{
+            if(!shapes.isEmpty()){
+
+                //Dialog
+                Object[] options = {"Save", "Don't Save", "Cancel"};
+                int clearDrawings = JOptionPane.showOptionDialog( Window.getDisplayPanel(),
+                        "There are drawings in your current workspace. \n"
+                                + "Do you want to save these?",
+                        "Clear Drawings?",
+                        JOptionPane.YES_NO_CANCEL_OPTION,
+                        JOptionPane.QUESTION_MESSAGE,
+                        null,
+                        options,
+                        options[2]);
+                //If "Ok" clear all drawings
+                if( clearDrawings == 0){
+                    int returnVal = fileChooser.showOpenDialog(this);
+                    //todo: show Save
+
+                    repaint();
+                    return true;
+                }
+                else if( clearDrawings == 1){
+                    shapes.clear();
+                    shapePenColor.clear();
+                    shapeFillColor.clear();
+                    shapeFilled.clear();
+                    repaint();
+                    return true;
+                }
+                else{
+                    return false;
+                }
+
+            }else{
+                return true;
+            }
+        }
     }
+
 
 
 
