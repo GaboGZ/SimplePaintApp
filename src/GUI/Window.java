@@ -6,20 +6,15 @@ import javax.swing.*;
 import javax.swing.border.EtchedBorder;
 import java.awt.*;
 import java.awt.event.*;
-import java.io.FileOutputStream;
-import java.io.OutputStreamWriter;
 import java.net.URL;
 import java.io.File;
-import java.util.concurrent.Flow;
 
 
 public class Window extends JFrame implements ActionListener,Runnable {
 
 
     //Constants
-    private static final int WIDTH = 600;
-    private static final int HEIGHT = 700;
-    private static final int MIN_WIDTH = 600;
+    private static final int MIN_WIDTH = 750;
     private static final int MIN_HEIGHT = 700;
 
 
@@ -37,7 +32,7 @@ public class Window extends JFrame implements ActionListener,Runnable {
 
     private JToolBar toolBar;
 
-    private JButton plotBtn, lineBtn, rectangleBtn, ellipseBtn, polygonBtn;
+    private JButton plotBtn, lineBtn, rectangleBtn, ellipseBtn, polygonBtn, undoBtn,redoBtn;
 
     public static JButton penBtn;
     public JButton fillBtn;
@@ -240,7 +235,7 @@ public class Window extends JFrame implements ActionListener,Runnable {
 
         checkBoxLabel = new JLabel();
         checkBoxLabel.setLabelFor(fillCheckBox);
-        checkBoxLabel.setText("Fill Shape?");
+        checkBoxLabel.setText("Fill Shape? ");
         checkBoxLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
 
@@ -250,6 +245,11 @@ public class Window extends JFrame implements ActionListener,Runnable {
         ellipseBtn =  createButton("ellipse-s","ELLIPSE","Ellipse","Ellipse-Alt");
         polygonBtn =  createButton("polygon-s","POLYGON","Polygon","Polygon-Alt");
 
+        undoBtn = createButton("undo-s","UNDO","Undo the last drawing","Undo-Alt");
+        undoBtn.setMnemonic(KeyEvent.VK_Z);
+
+        redoBtn = createButton("redo-s", "REDO", "redraw the last removed drawing", "Redo-Alt");
+        undoBtn.setMnemonic(KeyEvent.VK_Y);
         //Add button to the toolbar
         toolBar.add(penBtn);
         toolBar.add(fillBtn);
@@ -261,6 +261,8 @@ public class Window extends JFrame implements ActionListener,Runnable {
         toolBar.add(rectangleBtn);
         toolBar.add(ellipseBtn);
         toolBar.add(polygonBtn);
+        toolBar.add(undoBtn);
+        toolBar.add(redoBtn);
         toolBar.add(clearBtn);
         toolsPanel.add(toolBar);
     }
@@ -550,6 +552,43 @@ public class Window extends JFrame implements ActionListener,Runnable {
                     }
                 }
 
+                if(e.getSource()==undoBtn){
+                    try{
+                        pnlDisplay.undo();
+                    }catch (Exception ex){
+//                        ex.printStackTrace();
+                        //Dialog
+                        Object[] options = {"OK"};
+                        int noMoreDrawings = JOptionPane.showOptionDialog( Window.getDisplayPanel(),
+                                "There are no more drawings to undo",
+                                "Undo",
+                                JOptionPane.OK_OPTION,
+                                JOptionPane.INFORMATION_MESSAGE,
+                                null,
+                                options,
+                                options[0]);
+                    }
+                }
+
+                if(e.getSource()==redoBtn){
+                    try {
+                        pnlDisplay.forward();
+                    }
+                    catch (Exception ex) {
+//                        ex.printStackTrace();
+                        //Dialog
+                        Object[] options = {"OK"};
+                        int noMoreDrawings = JOptionPane.showOptionDialog( Window.getDisplayPanel(),
+                                "There are no more drawings to redo",
+                                "Redo",
+                                JOptionPane.OK_OPTION,
+                                JOptionPane.INFORMATION_MESSAGE,
+                                null,
+                                options,
+                                options[0]);
+                    }
+                }
+
                 if( e.getSource() == penBtn ){
                     penClicked = true;
                     fillClicked = false;
@@ -678,7 +717,7 @@ public class Window extends JFrame implements ActionListener,Runnable {
 //        if (action != "CLEAR" && action != "PEN" && action != "FILL"){
 //            return true;
 //        }
-        if(action.contains("CLEAR") || action.contains("PEN") || action.contains("FILL")){
+        if(action.contains("CLEAR") || action.contains("PEN") || action.contains("FILL") ||action.contains("REDO") || action.contains("UNDO")){
             return false;
         }
         else {

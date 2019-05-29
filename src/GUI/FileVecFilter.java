@@ -29,7 +29,7 @@ public class FileVecFilter extends FileFilter {
 
     @Override
     public String getDescription() {
-        return "just '.VEC' files";
+        return "just '.vec' files";
     }
 }
 

@@ -6,6 +6,7 @@ import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  * FileReader class used to read and perform drawings based on a .VEC file.
@@ -80,6 +81,10 @@ public class FileReader {
         return readFile(directory, fileName,ch);
     }
 
+    /**
+     * Perform different actions on the GUI.Canvas based on the current text line.
+     * @param textLine the current line of text.
+     */
     private void performActionOnGUI(String textLine) {
 
         if(textLine.contains("PEN")){
@@ -108,13 +113,13 @@ public class FileReader {
             }
             else if(textLine.contains("ELLIPSE")){
                 addShapeToCanvas("ELLIPSE",textLine);
+            }else if(textLine.contains("POLYGON")){
+                addShapeToCanvas("POLYGON",textLine);
             }
             canvas.shapePenColor.add(penColor);
             canvas.shapeFillColor.add(fillColor);
             canvas.shapeFilled.add(fillShape);
         }
-
-
         canvas.repaint();
     }
 
@@ -158,9 +163,10 @@ public class FileReader {
         String y_2 = "0";
         double x1,y1,x2,y2;
         ArrayList<Double> c = new ArrayList<>();
-        System.out.println("Size of chords: " + coords.length);
-        System.out.println("Size of spacesAt: " + spaces.size());
 
+        ArrayList<Integer> points = new ArrayList<>();
+        ArrayList<Integer> xpoints = new ArrayList<>();
+        ArrayList<Integer> ypoints = new ArrayList<>();
 
         for (int i = 0; i < coords.length ; i++) {
 
@@ -173,9 +179,7 @@ public class FileReader {
                     y_1 += coords[i];
                 }
             }
-
-            // LINE, RECTANGLE, CIRCLE
-            if(spaces.size() == 3){
+            else if (spaces.size() == 3){ // LINE, RECTANGLE, CIRCLE
                 if( i < spaces.get(0) ){
                     x_1 += coords[i];
                 }
@@ -188,7 +192,10 @@ public class FileReader {
                 else if( i > spaces.get(2) ){
                     y_2 += coords[i];
                 }
+            }else{//POLYGON
+
             }
+
         }
 
         x1 = Double.parseDouble(x_1);
@@ -206,6 +213,11 @@ public class FileReader {
         return c;
     }
 
+    /**
+     * Adds a shape to the canvas based on the command retrieved from the current line of text.
+     * @param command a Drawing command.
+     * @param textLine the current line of text.
+     */
     public void addShapeToCanvas(String command, String textLine){
 
         double x1,x2,y1,y2;

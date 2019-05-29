@@ -1,12 +1,12 @@
 package GUI;
 
 import javax.swing.*;
-import javax.swing.border.EtchedBorder;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.awt.geom.Ellipse2D;
+import java.awt.geom.GeneralPath;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 import java.text.DecimalFormat;
@@ -25,10 +25,16 @@ public class Canvas extends JComponent {
     //  shapePenColor: stores Pen Color
     //  shapeFillColor: stores Fill Color
     //  shapeFilled: stores whether the shape is filled or not.
-    public ArrayList<Shape> shapes = new ArrayList<Shape>();
-    public ArrayList<Color> shapePenColor = new ArrayList<Color>();
-    public ArrayList<Color> shapeFillColor = new ArrayList<Color>();
+    public ArrayList<Shape> shapes = new ArrayList<>();
+    public ArrayList<Color> shapePenColor = new ArrayList<>();
+    public ArrayList<Color> shapeFillColor = new ArrayList<>();
     public ArrayList<Boolean> shapeFilled = new ArrayList<>();
+
+
+    ArrayList<Shape> temp_shapes = new ArrayList<>();
+    ArrayList<Color> temp_shapePenColor = new ArrayList<>();
+    ArrayList<Color> temp_shapeFillColor = new ArrayList<>();
+    ArrayList<Boolean> temp_shapeFilled = new ArrayList<>();
     static Point drawStart;
     static Point drawEnd;
 
@@ -78,7 +84,14 @@ public class Canvas extends JComponent {
                  if( Window.isDrawingCommand(command)){
 
                      //Defines the shape to be drawn base on the current command
-                     s = defineShape(command,  drawStart.x,  drawStart.y,  drawEnd.x, drawEnd.y);
+                     if(command == "POLYGON"){
+                         int[] xpoints = {drawStart.x,drawEnd.x,90,90,150,90,90};
+                         int[] ypoints = {drawStart.y,drawEnd.y,85,110,70,30,55};
+                         s = drawPolygon(xpoints,ypoints,xpoints.length);
+                     }
+                     else{
+                         s = defineShape(command,  drawStart.x,  drawStart.y,  drawEnd.x, drawEnd.y);
+                     }
 
                      // Add shapes, fills and colors to the ArrayLists
                      shapes.add(s);
@@ -91,7 +104,7 @@ public class Canvas extends JComponent {
                          shapeFilled.add(false);
                      }
 
-                     writeCommandToFile(command,  drawStart.x/getWidth(),  drawStart.y/getHeight(),  drawEnd.x/getWidth(), drawEnd.y/getHeight());
+                     writeCommandToFile(command,  (double)drawStart.x/getWidth(),  (double)drawStart.y/getHeight(),  (double)drawEnd.x/getWidth(), (double)drawEnd.y/getHeight());
                  }
 
                  mousePressed = false;
@@ -168,8 +181,16 @@ public class Canvas extends JComponent {
             g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.40f));
             g2.setPaint(Color.LIGHT_GRAY);
 
+            Shape shape;
+
             // Create new shape based on current command
-            Shape shape = defineShape(Window.getCurrentAction(), drawStart.x,  drawStart.y,  drawEnd.x, drawEnd.y);
+            if(Window.getCurrentAction() == "POLYGON"){
+                int[] xpoints = {drawStart.x,drawEnd.x,90,90,150,90,90};
+                int[] ypoints = {drawStart.y,drawEnd.y,85,110,70,30,55};
+                shape = drawPolygon(xpoints,ypoints,xpoints.length);
+            }else{
+                shape = defineShape(Window.getCurrentAction(), drawStart.x,  drawStart.y,  drawEnd.x, drawEnd.y);
+            }
             g2.draw(shape);
         }
     }//End Paint Method
@@ -197,10 +218,6 @@ public class Canvas extends JComponent {
         }
         else if (action == "RECTANGLE"){
             s = drawRectangle(x1,y1,x2,y2);
-        }
-        else if (action == "POLYGON"){
-//            s = drawPolygon(x1, y1, x2, y2);
-//            s = drawPolyline(x1, y1, x2, y2);
         }
         return s;
     }
@@ -230,22 +247,22 @@ public class Canvas extends JComponent {
     }
 
     //todo: finish drawPolygon();
-//    private GeneralPath drawPolygon(double x1, double y1, double x2, double y2) {
-//
-////        double xPoints[] =  getMouseCoordinates()[0];
-////        double yPoints[] = getMouseCoordinates()[1];
-//        // draw GeneralPath (polygon)
-//        GeneralPath polygon = new GeneralPath(GeneralPath.WIND_EVEN_ODD, xPoints.length);
-//        // How can I feed these arrays with mouse events?
-//
-//        polygon.moveTo(xPoints[0], yPoints[0]);
-//        for (int index = 1; index < xPoints.length; index++) {
-//            polygon.lineTo(xPoints[index], yPoints[index]);
-//        }
-//        polygon.closePath();
-//
-//        return polygon;
-//    }
+    private GeneralPath drawPolygon(int[]xPoints, int[]yPoints, int sides) {
+
+//        double xPoints[] =  getMouseCoordinates()[0];
+//        double yPoints[] = getMouseCoordinates()[1];
+        // draw GeneralPath (polygon)
+        GeneralPath polygon = new GeneralPath(GeneralPath.WIND_EVEN_ODD, xPoints.length);
+        // How can I feed these arrays with mouse events?
+
+        polygon.moveTo(xPoints[0], yPoints[0]);
+        for (int index = 1; index < xPoints.length; index++) {
+            polygon.lineTo(xPoints[index], yPoints[index]);
+        }
+        polygon.closePath();
+
+        return polygon;
+    }
 
 //    private GeneralPath drawPolyline(double x1, double y1, double x2, double y2) {
 //
@@ -344,6 +361,66 @@ public class Canvas extends JComponent {
         return "#"+rgb.substring(2).toUpperCase();
     }
 
+    /**
+     *
+     * @return
+     */
+    public int getLastDrawingIndex(ArrayList arr){
+        int indexOfLastDrawing = arr.size()-1;
+        return indexOfLastDrawing;
+    }
+
+    /**
+     * Removes the mos recent drawing.
+     */
+    public void undo() throws Exception {
+
+        if( !shapes.isEmpty()){
+            //Remove last drawing
+            int lastDrawing = getLastDrawingIndex(shapes);
+
+            //Add deleted elements
+            temp_shapes.add(shapes.get(getLastDrawingIndex(shapes)));
+            temp_shapePenColor.add(shapePenColor.get(getLastDrawingIndex(shapePenColor)));
+            temp_shapeFillColor.add(shapeFillColor.get(getLastDrawingIndex(shapeFillColor)));
+            temp_shapeFilled.add(shapeFilled.get(getLastDrawingIndex(shapeFilled)));
+
+
+            shapes.remove(lastDrawing);
+            shapePenColor.remove(lastDrawing);
+            shapeFillColor.remove(lastDrawing);
+            shapeFilled.remove(lastDrawing);
+            repaint();
+        }else{
+            throw new Exception();
+        }
+
+    }
+
+    /**
+     * Redraws the most recent deleted drawing.
+     */
+    public void forward() throws Exception {
+
+        if(!temp_shapes.isEmpty()){
+            int lastDrawing = getLastDrawingIndex(temp_shapes);
+            //Redraw the most recent deleted drawing
+            shapes.add(temp_shapes.get(getLastDrawingIndex(temp_shapes)));
+            shapePenColor.add(temp_shapePenColor.get(getLastDrawingIndex(temp_shapePenColor)));
+            shapeFillColor.add(temp_shapeFillColor.get(getLastDrawingIndex(temp_shapeFillColor)));
+            shapeFilled.add(temp_shapeFilled.get(getLastDrawingIndex(temp_shapeFilled)));
+
+            temp_shapes.remove(lastDrawing);
+            temp_shapePenColor.remove(lastDrawing);
+            temp_shapeFillColor.remove(lastDrawing);
+            temp_shapeFilled.remove(lastDrawing);
+
+            repaint();
+        }else{
+            throw new Exception();
+        }
+
+    }
     /**
      * Clear all drawings from the display panel.
      * <ul><li>If forcedAction == true, clears drawings.</li>
