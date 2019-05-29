@@ -17,7 +17,7 @@ public class FileVecFilter extends FileFilter {
         String file = f.getName();
 
         if(file != null) {
-            if(file.contains(".VEC")){
+            if(file.contains(".VEC") || file.contains(".vec")){
                 return true;
             }
         }else{

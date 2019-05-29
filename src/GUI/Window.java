@@ -6,8 +6,11 @@ import javax.swing.*;
 import javax.swing.border.EtchedBorder;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
 import java.net.URL;
 import java.io.File;
+import java.util.concurrent.Flow;
 
 
 public class Window extends JFrame implements ActionListener,Runnable {
@@ -16,7 +19,7 @@ public class Window extends JFrame implements ActionListener,Runnable {
     //Constants
     private static final int WIDTH = 600;
     private static final int HEIGHT = 700;
-    private static final int MIN_WIDTH = 700;
+    private static final int MIN_WIDTH = 600;
     private static final int MIN_HEIGHT = 700;
 
 
@@ -267,7 +270,8 @@ public class Window extends JFrame implements ActionListener,Runnable {
      */
     public void createColorPalette(){
 
-        colorPalette = createPanel(Color.WHITE, new BorderLayout());
+        colorPalette = createPanel(Color.WHITE, new FlowLayout());
+
 
         JPanel pLeft = createPanel(Color.WHITE, new BorderLayout());
         pLeft.setBorder(BorderFactory.createTitledBorder("Current Colors"));
@@ -278,11 +282,11 @@ public class Window extends JFrame implements ActionListener,Runnable {
 
         JPanel pCenter = createPanel(Color.WHITE, new BorderLayout());
         pCenter.setBorder(BorderFactory.createTitledBorder("Color Palette"));
-        pCenter.setPreferredSize(new Dimension(400,100));
+        pCenter.setPreferredSize(new Dimension(250,100));
         JPanel pCenter_up = new JPanel();
         JPanel pCenter_down = new JPanel();
 
-        JPanel pRight = createPanel(Color.WHITE, new BorderLayout());
+        JPanel pRight = createPanel(Color.WHITE);
         pRight.setBorder(BorderFactory.createTitledBorder("Custom Color"));
         pRight.setPreferredSize(new Dimension(150,100));
 
@@ -310,7 +314,9 @@ public class Window extends JFrame implements ActionListener,Runnable {
         redBtn = createColorButton(Color.RED);
         magentaBtn = createColorButton(Color.MAGENTA);
         customBtn = createButton("custom-s","CUSTOM","Custom Color","Custom-Alt");
-        customBtn.setPreferredSize(new Dimension(50,50));
+        customBtn.setPreferredSize(new Dimension(140,60));
+        customBtn.setMinimumSize(new Dimension(140,60));
+
 
         // Add components to panel
         pLeft_up.add(currentPenColorBtn);
@@ -337,9 +343,9 @@ public class Window extends JFrame implements ActionListener,Runnable {
         pCenter.add(pCenter_down, BorderLayout.SOUTH);
         pRight.add(customBtn);
 
-        colorPalette.add(pLeft, BorderLayout.WEST);
-        colorPalette.add(pCenter, BorderLayout.CENTER);
-        colorPalette.add(pRight, BorderLayout.EAST);
+        colorPalette.add(pLeft, FlowLayout.LEFT);
+        colorPalette.add(pCenter, FlowLayout.CENTER);
+        colorPalette.add(pRight, FlowLayout.RIGHT);
         palettePanel.add(colorPalette, BorderLayout.CENTER);
     }
 
@@ -582,6 +588,26 @@ public class Window extends JFrame implements ActionListener,Runnable {
         }
         if( e.getSource() == Save) {
             //todo: Save File
+//            protected void saveToFile() {
+                JFileChooser fileChooser = new JFileChooser();
+                int retval = fileChooser.showSaveDialog(Save);
+                if (retval == JFileChooser.APPROVE_OPTION) {
+                    File file = fileChooser.getSelectedFile();
+                    if (file == null) {
+                        return;
+                    }
+                    if (!file.getName().toLowerCase().endsWith(".VEC")) {
+                        file = new File(file.getParentFile(), file.getName() + ".VEC");
+                    }
+//                    try {
+////                        textArea.write(new OutputStreamWriter(new FileOutputStream(file),
+////                                "utf-8"));
+//                        Desktop.getDesktop().open(file);
+//                    } catch (Exception e) {
+//                        e.printStackTrace();
+//                    }
+                }
+//            }
         }
         if( e.getSource() == SaveAs) {
             //todo: Save file as 'filename'
@@ -649,11 +675,14 @@ public class Window extends JFrame implements ActionListener,Runnable {
      * @return boolean - true or false
      */
     public static boolean isDrawingCommand(String action){
-        if (action != "CLEAR" && action != "PEN" && action != "FILL"){
-            return true;
+//        if (action != "CLEAR" && action != "PEN" && action != "FILL"){
+//            return true;
+//        }
+        if(action.contains("CLEAR") || action.contains("PEN") || action.contains("FILL")){
+            return false;
         }
         else {
-            return false;
+            return true;
         }
     }
 

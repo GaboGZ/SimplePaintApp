@@ -22,7 +22,7 @@ public class FileWriter {
     public void writeToFile(String fileName, String text) {
         this.str = text;
         this.data = text.getBytes();
-        Path p = Paths.get(sourceFolder + fileName + ".VEC");
+        Path p = Paths.get(sourceFolder + fileName + ".vec");
 
         try (OutputStream out = new BufferedOutputStream(Files.newOutputStream(p, CREATE, APPEND))) {
             out.write(data, 0, data.length);

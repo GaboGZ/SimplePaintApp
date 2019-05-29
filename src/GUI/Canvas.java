@@ -379,8 +379,10 @@ public class Canvas extends JComponent {
                         options[2]);
                 //If "Ok" clear all drawings
                 if( clearDrawings == 0){
-                    int returnVal = fileChooser.showOpenDialog(this);
+                    int returnVal = fileChooser.showOpenDialog(Window.getDisplayPanel());
                     //todo: show Save
+
+
 
                     repaint();
                     return true;

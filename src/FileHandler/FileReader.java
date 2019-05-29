@@ -15,6 +15,9 @@ public class FileReader {
     String textFile;
     Charset ch;
     GUI.Canvas canvas;
+    Color penColor = Window.getCurrentPenColor();
+    Color fillColor = Window.getCurrentFillColor();
+    boolean fillShape = false;
 
     /**
      * Reads a file by passing the source directory, name of the source file and charset.
@@ -32,6 +35,7 @@ public class FileReader {
         setCharset(charset);
 
         canvas = Window.getDisplayPanel();
+
         if(canvas.clearDrawings(false)){
 
             // Try with resources: The BufferedReader is automatically closed after each read.
@@ -78,17 +82,39 @@ public class FileReader {
 
     private void performActionOnGUI(String textLine) {
 
-        if(textLine.contains("PLOT")){
-            doDrawing("PLOT",textLine);
-        }else if(textLine.contains("LINE")){
-            doDrawing("LINE",textLine);
+        if(textLine.contains("PEN")){
+            String HexColor = textLine.substring("PEN".length() + 1);
+            penColor = Color.decode(HexColor);
         }
-        else if(textLine.contains("RECTANGLE")){
-                doDrawing("RECTANGLE",textLine);
+
+        if(textLine.contains("FILL #")){
+            String HexColor = textLine.substring("FILL".length() + 1);
+            fillColor = Color.decode(HexColor);
+            fillShape = true;
         }
-        else if(textLine.contains("ELLIPSE")){
-            doDrawing("ELLIPSE",textLine);
+
+        if (textLine.contains("FILL OFF")){
+            fillShape = false;
         }
+
+        if(Window.isDrawingCommand(textLine)){
+            if(textLine.contains("PLOT")){
+                addShapeToCanvas("PLOT",textLine);
+            }else if(textLine.contains("LINE")){
+                addShapeToCanvas("LINE",textLine);
+            }
+            else if(textLine.contains("RECTANGLE")){
+                addShapeToCanvas("RECTANGLE",textLine);
+            }
+            else if(textLine.contains("ELLIPSE")){
+                addShapeToCanvas("ELLIPSE",textLine);
+            }
+            canvas.shapePenColor.add(penColor);
+            canvas.shapeFillColor.add(fillColor);
+            canvas.shapeFilled.add(fillShape);
+        }
+
+
         canvas.repaint();
     }
 
@@ -146,10 +172,6 @@ public class FileReader {
                 else if( i > spaces.get(0)){
                     y_1 += coords[i];
                 }
-//                double x1 = Double.parseDouble(x_1);
-//                double y1 = Double.parseDouble(y_1);
-//                canvas.add(x1);
-//                canvas.add(y1);
             }
 
             // LINE, RECTANGLE, CIRCLE
@@ -184,7 +206,7 @@ public class FileReader {
         return c;
     }
 
-    public void doDrawing(String command, String textLine){
+    public void addShapeToCanvas(String command, String textLine){
 
         double x1,x2,y1,y2;
 
@@ -216,9 +238,6 @@ public class FileReader {
 
         //(5) Do drawing by adding necessary elements to the canvas.
         canvas.shapes.add(canvas.defineShape(command,x1,y1,x2,y2));
-        canvas.shapePenColor.add(Color.BLACK);
-        canvas.shapeFillColor.add(Window.getCurrentFillColor());
-        canvas.shapeFilled.add(false);
     }
 
 }
