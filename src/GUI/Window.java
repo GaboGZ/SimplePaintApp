@@ -9,8 +9,10 @@ import java.awt.event.*;
 import java.net.URL;
 import java.io.File;
 
+import Listeners.*;
 
-public class Window extends JFrame implements ActionListener,Runnable {
+
+public class Window extends JFrame implements ActionListener, Runnable {
 
 
     //Constants
@@ -23,45 +25,52 @@ public class Window extends JFrame implements ActionListener,Runnable {
     private JMenu menuFile, menuHome, menuView;
     private JMenuItem New, Open, Save, SaveAs, Options, Close;
 
-    public JPanel mainPanel;
+    public static JPanel mainPanel;
     private JPanel pnlUp, pnlUp_Up, pnlUp_Down, toolsPanel, palettePanel;
     private JPanel pnlLeft, pnlRight;
     private JPanel pnlDown, pnlDown_Up, pnlDown_Down;
-    private static Canvas pnlDisplay;
-//    private DrawArea drawArea;
+    public static Canvas pnlDisplay;
 
     private JToolBar toolBar;
 
-    private JButton plotBtn, lineBtn, rectangleBtn, ellipseBtn, polygonBtn, undoBtn,redoBtn;
+    EventsHandler eventsHandler;
+    ActionListener actionListener;
+    public static JButton plotBtn;
+    public static JButton lineBtn;
+    public static JButton rectangleBtn;
+    public static JButton ellipseBtn;
+    public static JButton polygonBtn;
+    public static JButton undoBtn;
+    public static JButton redoBtn;
 
     public static JButton penBtn;
-    public JButton fillBtn;
-    public JButton clearBtn;
-    public JButton customBtn;
-    public JButton blackBtn, blueBtn, greenBtn, darkGrayBtn, lightGrayBtn;
-    public JButton cyanBtn, redBtn, magentaBtn, whiteBtn, grayBtn, orangeBtn, yellowBtn;
+    public static JButton fillBtn;
+    public static JButton clearBtn;
+    public static JButton customBtn;
+    public static JButton blackBtn, blueBtn, greenBtn, darkGrayBtn, lightGrayBtn;
+    public static JButton cyanBtn, redBtn, magentaBtn, whiteBtn, grayBtn, orangeBtn, yellowBtn;
     public JPanel colorPalette;
 
     private JFileChooser fileChooser;
 
     JPanel statusBar;
     static JLabel coordLabel;
-    JLabel commmandSelectedLabel;
+    public static JLabel commmandSelectedLabel;
     JLabel zoomLabel;
 
-    private static String currentAction = "PEN";
-    private JButton currentPenColorBtn;
+    public static String currentAction = "PEN";
+    public static JButton currentPenColorBtn;
     private JLabel currentPenColorLabel;
-    static JCheckBox fillCheckBox;
-    private JLabel checkBoxLabel;
-    private JButton currentFillColorBtn;
+    public static JCheckBox fillCheckBox;
+    public static  JLabel checkBoxLabel;
+    public static JButton currentFillColorBtn;
     private JLabel currentFillColorLabel;
 
     //Globals that manage the state of the program
-    private static Color penColor = Color.BLACK;
-    private static Color fillColor = Color.WHITE;
-    static boolean penClicked = true;
-    static boolean fillClicked = false;
+    public static Color penColor = Color.BLACK;
+    public static Color fillColor = Color.WHITE;
+    public static boolean penClicked = true;
+    public static boolean fillClicked = false;
     static boolean penColorChanged = false;
     static boolean fillColorChanged = false;
 
@@ -71,7 +80,7 @@ public class Window extends JFrame implements ActionListener,Runnable {
         createAndDisplayGUI();
     }
 
-    private void createAndDisplayGUI(){
+    private void createAndDisplayGUI() {
 
         JFrame.setDefaultLookAndFeelDecorated(true);
         JFrame Window = new JFrame();
@@ -82,6 +91,8 @@ public class Window extends JFrame implements ActionListener,Runnable {
 //        setSize(WIDTH,HEIGHT);
         setMinimumSize(new Dimension(MIN_WIDTH, MIN_HEIGHT));
         setLayout(new BorderLayout());
+
+        eventsHandler = new EventsHandler();
 
         //Add components
         createMenuBar();
@@ -103,7 +114,7 @@ public class Window extends JFrame implements ActionListener,Runnable {
     /**
      * Created the main panel that contains all other panels.
      */
-    private void createMainPanel(){
+    private void createMainPanel() {
         // Create main Panel
         mainPanel = createPanel(Color.WHITE, new BorderLayout());
         // Child Panels
@@ -113,7 +124,7 @@ public class Window extends JFrame implements ActionListener,Runnable {
     /**
      * Creates all the required child panels
      */
-    public void createChildPanels(){
+    public void createChildPanels() {
         // Upper Panels
         pnlUp = createPanel(Color.WHITE, new BorderLayout());
 
@@ -135,7 +146,7 @@ public class Window extends JFrame implements ActionListener,Runnable {
         pnlDown = createPanel(Color.GRAY, new BorderLayout());
         pnlDown_Up = createPanel(Color.GRAY);//Surrounds Canvas
         pnlDown_Down = createPanel(Color.WHITE, new BorderLayout()); //Status Bar Panel
-        pnlDown.add(pnlDown_Up,BorderLayout.NORTH);
+        pnlDown.add(pnlDown_Up, BorderLayout.NORTH);
         pnlDown.add(pnlDown_Down, BorderLayout.SOUTH);
 
         pnlDisplay = new Canvas(); // Center Panel | Used to draw shapes
@@ -145,7 +156,7 @@ public class Window extends JFrame implements ActionListener,Runnable {
         mainPanel.add(pnlLeft, BorderLayout.WEST);
         mainPanel.add(pnlRight, BorderLayout.EAST);
         mainPanel.add(pnlDown, BorderLayout.SOUTH);
-        mainPanel.add(pnlDisplay,BorderLayout.CENTER);
+        mainPanel.add(pnlDisplay, BorderLayout.CENTER);
 
     }
 
@@ -208,7 +219,7 @@ public class Window extends JFrame implements ActionListener,Runnable {
     /**
      * Create a new instance of the FileChooser class.
      */
-    public void createFileChooser(){
+    public void createFileChooser() {
 
         fileChooser = new JFileChooser();
         fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
@@ -221,40 +232,43 @@ public class Window extends JFrame implements ActionListener,Runnable {
     /**
      * Creates an instance of JToolbar containing the drawing buttons.
      */
-    private void createToolbar(){
+    private void createToolbar() {
         toolBar = new JToolBar();
         toolBar.setBorder(BorderFactory.createTitledBorder("Drawing Tools"));
         toolBar.setFloatable(false);    //fixed toolBar
         toolBar.setRollover(true);      //displays info when hovering
 
         //Create ToolBar buttons
-        clearBtn = createButton("clear-s","CLEAR","Clear","Clear-Alt");
-        penBtn = createButton("pen-s","PEN","Pen color","Pen-Alt");
-        fillBtn = createButton("fill-s","FILL","Fill color","Fill-Alt");
+        clearBtn = createButton("clear-s", "CLEAR", "(X) Clear", "Clear-Alt");
+        penBtn = createButton("pen-s", "PEN", "(D) Pen color", "Pen-Alt");
+        fillBtn = createButton("fill-s", "FILL", "(F) Fill color", "Fill-Alt");
+
         fillCheckBox = new JCheckBox();
-
+        fillCheckBox.addActionListener(eventsHandler);
+        fillCheckBox.addKeyListener(eventsHandler);
+        fillCheckBox.addItemListener(eventsHandler);
         checkBoxLabel = new JLabel();
+        checkBoxLabel.setToolTipText("(S) Fill shape");
         checkBoxLabel.setLabelFor(fillCheckBox);
-        checkBoxLabel.setText("Fill Shape? ");
+        checkBoxLabel.setText("Fill OFF");
         checkBoxLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        checkBoxLabel.addMouseListener(eventsHandler);
 
+        plotBtn = createButton("plot-s", "PLOT", "(.) Plot", "Plot-Alt");
+        lineBtn = createButton("line-s", "LINE", "(L) Line", "Line-Alt");
+        rectangleBtn = createButton("rectangle-s", "RECTANGLE", "(R) Rectangle", "Rectangle-Alt");
+        ellipseBtn = createButton("ellipse-s", "ELLIPSE", "(E) Ellipse", "Ellipse-Alt");
+        polygonBtn = createButton("polygon-s", "POLYGON", "(P)Polygon", "Polygon-Alt");
 
-        plotBtn = createButton("plot-s","PLOT","Plot","Plot-Alt");
-        lineBtn =  createButton("line-s","LINE","Line","Line-Alt");
-        rectangleBtn =  createButton("rectangle-s","RECTANGLE","Rectangle","Rectangle-Alt");
-        ellipseBtn =  createButton("ellipse-s","ELLIPSE","Ellipse","Ellipse-Alt");
-        polygonBtn =  createButton("polygon-s","POLYGON","Polygon","Polygon-Alt");
+        undoBtn = createButton("undo-s", "UNDO", "(Z) Undo the last drawing", "Undo-Alt");
+        redoBtn = createButton("redo-s", "REDO", "(Y) Redraw the last removed drawing", "Redo-Alt");
 
-        undoBtn = createButton("undo-s","UNDO","Undo the last drawing","Undo-Alt");
-        undoBtn.setMnemonic(KeyEvent.VK_Z);
-
-        redoBtn = createButton("redo-s", "REDO", "redraw the last removed drawing", "Redo-Alt");
-        undoBtn.setMnemonic(KeyEvent.VK_Y);
         //Add button to the toolbar
         toolBar.add(penBtn);
         toolBar.add(fillBtn);
         toolBar.add(fillCheckBox);
         toolBar.add(checkBoxLabel);
+        toolBar.addSeparator();
 
         toolBar.add(plotBtn);
         toolBar.add(lineBtn);
@@ -270,27 +284,27 @@ public class Window extends JFrame implements ActionListener,Runnable {
     /**
      * Create a palette of basic colors.
      */
-    public void createColorPalette(){
+    public void createColorPalette() {
 
         colorPalette = createPanel(Color.WHITE, new FlowLayout());
 
 
         JPanel pLeft = createPanel(Color.WHITE, new BorderLayout());
         pLeft.setBorder(BorderFactory.createTitledBorder("Current Colors"));
-        pLeft.setPreferredSize(new Dimension(150,100));
+        pLeft.setPreferredSize(new Dimension(150, 100));
 
         JPanel pLeft_up = new JPanel();
         JPanel pLeft_down = new JPanel();
 
         JPanel pCenter = createPanel(Color.WHITE, new BorderLayout());
         pCenter.setBorder(BorderFactory.createTitledBorder("Color Palette"));
-        pCenter.setPreferredSize(new Dimension(250,100));
+        pCenter.setPreferredSize(new Dimension(250, 100));
         JPanel pCenter_up = new JPanel();
         JPanel pCenter_down = new JPanel();
 
         JPanel pRight = createPanel(Color.WHITE);
         pRight.setBorder(BorderFactory.createTitledBorder("Custom Color"));
-        pRight.setPreferredSize(new Dimension(150,100));
+        pRight.setPreferredSize(new Dimension(150, 100));
 
         currentPenColorBtn = createColorButton(penColor);
         currentPenColorBtn.setEnabled(false);
@@ -315,9 +329,9 @@ public class Window extends JFrame implements ActionListener,Runnable {
         orangeBtn = createColorButton(Color.ORANGE);
         redBtn = createColorButton(Color.RED);
         magentaBtn = createColorButton(Color.MAGENTA);
-        customBtn = createButton("custom-s","CUSTOM","Custom Color","Custom-Alt");
-        customBtn.setPreferredSize(new Dimension(140,60));
-        customBtn.setMinimumSize(new Dimension(140,60));
+        customBtn = createButton("custom-s", "CUSTOM", "Custom Color", "Custom-Alt");
+        customBtn.setPreferredSize(new Dimension(140, 60));
+        customBtn.setMinimumSize(new Dimension(140, 60));
 
 
         // Add components to panel
@@ -354,7 +368,7 @@ public class Window extends JFrame implements ActionListener,Runnable {
     /**
      * Creates the status bar.
      */
-    public void createStatusBar(){
+    public void createStatusBar() {
 
         statusBar = createPanel(Color.WHITE, new BorderLayout());
         statusBar.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
@@ -371,9 +385,7 @@ public class Window extends JFrame implements ActionListener,Runnable {
         zoomLabel.setBackground(Color.WHITE);
 
         statusBar.add(coordLabel, BorderLayout.WEST);
-//        statusBar.add(new JSeparator(SwingConstants.VERTICAL));
-        statusBar.add(commmandSelectedLabel,BorderLayout.CENTER);
-//        statusBar.add(new JSeparator(SwingConstants.VERTICAL));
+        statusBar.add(commmandSelectedLabel, BorderLayout.CENTER);
         statusBar.add(zoomLabel, BorderLayout.EAST);
 
         pnlDown_Down.add(statusBar);
@@ -384,10 +396,11 @@ public class Window extends JFrame implements ActionListener,Runnable {
 
     /**
      * Creates a standard JPanel and set the background color to the given color.
+     *
      * @param c
      * @return
      */
-    private JPanel createPanel(Color c){
+    private JPanel createPanel(Color c) {
         JPanel panel = new JPanel();
         panel.setBackground(c);
         return panel;
@@ -395,95 +408,46 @@ public class Window extends JFrame implements ActionListener,Runnable {
 
     /**
      * Creates a possible Parent JPanel. Sets the LayoutManager to the given layout.
-     * @param c Color
+     *
+     * @param c      Color
      * @param layout LayoutManager
      * @return a Jpanel
      */
-    private JPanel createPanel(Color c, LayoutManager layout){
+    private JPanel createPanel(Color c, LayoutManager layout) {
         JPanel panel = new JPanel();
         panel.setBackground(c);
         panel.setLayout(layout);
         return panel;
     }
 
-
-
     /**
      * Create buttons for the color palette
+     *
      * @param color
      * @return a colored button
      */
-    private JButton createColorButton(Color color){
+    private JButton createColorButton(Color color) {
 
         JButton button = new JButton();
-        button.setPreferredSize(new Dimension(25,25));
+        button.setPreferredSize(new Dimension(25, 25));
+        button.setActionCommand("CHANGE_COLOR");
         button.setBackground(color);
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-
-        button.addActionListener(new ActionListener() {
-
-            public void actionPerformed(ActionEvent e) {
-
-                if(e.getSource() == blackBtn) {
-                    penColor = setPenColor(blackBtn);
-                    fillColor = setFillColor(blackBtn);
-                }else if( e.getSource() == darkGrayBtn){
-                    penColor = setPenColor(darkGrayBtn);
-                    fillColor = setFillColor(darkGrayBtn);
-                }else if( e.getSource() == grayBtn){
-                    penColor = setPenColor(grayBtn);
-                    fillColor = setFillColor(grayBtn);
-                }else if( e.getSource() == lightGrayBtn) {
-                    penColor = setPenColor(lightGrayBtn);
-                    fillColor = setFillColor(lightGrayBtn);
-                }else if( e.getSource() == whiteBtn){
-                    penColor = setPenColor(whiteBtn);
-                    fillColor = setFillColor(whiteBtn);
-                }else if( e.getSource() == blueBtn){
-                    penColor = setPenColor(blueBtn);
-                    fillColor = setFillColor(blueBtn);
-                }else if( e.getSource() == cyanBtn) {
-                    penColor = setPenColor(cyanBtn);
-                    fillColor = setFillColor(cyanBtn);
-                }else if( e.getSource() == greenBtn){
-                    penColor = setPenColor(greenBtn);
-                    fillColor = setFillColor(greenBtn);
-                }else if( e.getSource() == yellowBtn){
-                    penColor = setPenColor(yellowBtn);
-                    fillColor = setFillColor(yellowBtn);
-                }else if(e.getSource() == orangeBtn){
-                    penColor = setPenColor(orangeBtn);
-                    fillColor = setFillColor(orangeBtn);
-                }else if( e.getSource() == redBtn){
-                    penColor = setPenColor(redBtn);
-                    fillColor = setFillColor(redBtn);
-                }else if(e.getSource() == magentaBtn) {
-                    penColor = setPenColor(magentaBtn);
-                    fillColor = setFillColor(magentaBtn);
-                }else if(e.getSource() == currentPenColorBtn){
-                    penClicked = true;
-                    fillClicked = false;
-                }else if(e.getSource() == currentFillColorBtn){
-                    penClicked = false;
-                    fillClicked = true;
-
-                }
-            }
-        });
-
+        button.addActionListener(eventsHandler);
+        button.addKeyListener(eventsHandler);
         return button;
     }
 
 
-
     /**
-     * @param imageName name for the image file. Not file extension needed.
+     * @param imageName     name for the image file. Not file extension needed.
      * @param actionCommand Command to call a drawing method.
-     * @param toolTipText Text display when hovering.
-     * @param altText Text displayed if no image is found.
+     * @param toolTipText   Text display when hovering.
+     * @param altText       Text displayed if no image is found.
      * @return JButton
      */
-    private JButton createButton(String imageName,String actionCommand, String toolTipText,String altText) {
+    private JButton createButton(String imageName, String actionCommand, String toolTipText, String altText) {
+
         //Look for the image.
         String imgLocation = "images/" + imageName + ".png";
         URL imageURL = Window.class.getResource(imgLocation);
@@ -493,7 +457,7 @@ public class Window extends JFrame implements ActionListener,Runnable {
         button.setActionCommand(actionCommand);
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         button.setToolTipText(toolTipText);
-        button.setMaximumSize(new Dimension(75,75));
+        button.setMaximumSize(new Dimension(75, 75));
 
         if (imageURL != null) { //image found
             button.setIcon(new ImageIcon(imageURL, altText));
@@ -502,108 +466,36 @@ public class Window extends JFrame implements ActionListener,Runnable {
             System.err.println("Image not found: " + imgLocation);
         }
 
-        //Add listener and event handlers
-        button.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-
-                if( isDrawingCommand(actionCommand)){
-                    currentAction = actionCommand;
-                }
-
-                commmandSelectedLabel.setText("Command: " + getCurrentAction());
-//                System.out.println("Current Command: " + getCurrentAction());
-
-                if( e.getSource() == customBtn) {
-                    // Display modal color picker
-                    Color newColor = JColorChooser.showDialog(mainPanel, "Pick a color", mainPanel.getBackground());
-
-                    // if a color is picked newColor is set to the picked color
-                    // otherwise is set to null.
-                    if (newColor != null) {
-                        //check if pen or fill is being used.
-                        if ( penClicked){
-                            penColor = newColor;
-                            currentPenColorBtn.setBackground(penColor);
-                        }
-                        if ( fillClicked){
-                            fillColor = newColor;
-                            currentFillColorBtn.setBackground(fillColor);
-                        }
-                    }
-                }
-                if( e.getSource() == clearBtn) {
-
-                    //Dialog
-                    Object[] options = {"Ok", "Cancel"};
-                    int clearDrawings = JOptionPane.showOptionDialog( pnlDisplay,
-                            "This action will clear all the drawings and cannot be undone.\n"
-                                    + "Do you want to proceed?",
-                            "Clear Drawings",
-                            JOptionPane.OK_CANCEL_OPTION,
-                            JOptionPane.WARNING_MESSAGE,
-                            null,
-                            options,
-                            options[1]);
-                    //If "Ok" clear all drawings
-                    if( clearDrawings == 0){
-                        pnlDisplay.clearDrawings(true);
-                        repaint();
-                    }
-                }
-
-                if(e.getSource()==undoBtn){
-                    try{
-                        pnlDisplay.undo();
-                    }catch (Exception ex){
-//                        ex.printStackTrace();
-                        //Dialog
-                        Object[] options = {"OK"};
-                        int noMoreDrawings = JOptionPane.showOptionDialog( Window.getDisplayPanel(),
-                                "There are no more drawings to undo",
-                                "Undo",
-                                JOptionPane.OK_OPTION,
-                                JOptionPane.INFORMATION_MESSAGE,
-                                null,
-                                options,
-                                options[0]);
-                    }
-                }
-
-                if(e.getSource()==redoBtn){
-                    try {
-                        pnlDisplay.forward();
-                    }
-                    catch (Exception ex) {
-//                        ex.printStackTrace();
-                        //Dialog
-                        Object[] options = {"OK"};
-                        int noMoreDrawings = JOptionPane.showOptionDialog( Window.getDisplayPanel(),
-                                "There are no more drawings to redo",
-                                "Redo",
-                                JOptionPane.OK_OPTION,
-                                JOptionPane.INFORMATION_MESSAGE,
-                                null,
-                                options,
-                                options[0]);
-                    }
-                }
-
-                if( e.getSource() == penBtn ){
-                    penClicked = true;
-                    fillClicked = false;
-                }
-                if (e.getSource() == fillBtn){
-                    penClicked = false;
-                    fillClicked = true;
-                }
-
-            }
-        });
-
+        button.addKeyListener(eventsHandler);
+        button.addActionListener(eventsHandler);
         return button;
     }
 
+    public static int showWarningMessage(String title, String message) {
+        Object[] options = {"Ok", "Cancel"};
+        int warningResponse = JOptionPane.showOptionDialog(pnlDisplay,
+                message + "\nDo you want to proceed?",
+                title,
+                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.WARNING_MESSAGE,
+                null,
+                options,
+                options[1]);
+        return warningResponse;
+    }
+
+    public static int showInformationMessage(String title, String message) {
+        Object[] options = {"OK"};
+        int dialogResponse = JOptionPane.showOptionDialog(Window.getDisplayPanel(),
+                message,
+                title,
+                JOptionPane.OK_OPTION,
+                JOptionPane.INFORMATION_MESSAGE,
+                null,
+                options,
+                options[0]);
+        return dialogResponse;
+    }
 
     /*      EVENT LISTENERS     */
     @Override
@@ -616,28 +508,28 @@ public class Window extends JFrame implements ActionListener,Runnable {
                 String dir = fileChooser.getCurrentDirectory().toString();
                 File file = fileChooser.getSelectedFile();
                 FileReader fr = new FileReader();
-                fr.readFile(dir,file.getName());
+                fr.readFile(dir, file.getName());
             } else {
                 System.out.println("Open command cancelled by user." + "\n");
             }
         }
 
-        if( e.getSource() == New) {
+        if (e.getSource() == New) {
             //todo: Create new File
         }
-        if( e.getSource() == Save) {
+        if (e.getSource() == Save) {
             //todo: Save File
 //            protected void saveToFile() {
-                JFileChooser fileChooser = new JFileChooser();
-                int retval = fileChooser.showSaveDialog(Save);
-                if (retval == JFileChooser.APPROVE_OPTION) {
-                    File file = fileChooser.getSelectedFile();
-                    if (file == null) {
-                        return;
-                    }
-                    if (!file.getName().toLowerCase().endsWith(".VEC")) {
-                        file = new File(file.getParentFile(), file.getName() + ".VEC");
-                    }
+            JFileChooser fileChooser = new JFileChooser();
+            int retval = fileChooser.showSaveDialog(Save);
+            if (retval == JFileChooser.APPROVE_OPTION) {
+                File file = fileChooser.getSelectedFile();
+                if (file == null) {
+                    return;
+                }
+                if (!file.getName().toLowerCase().endsWith(".VEC")) {
+                    file = new File(file.getParentFile(), file.getName() + ".VEC");
+                }
 //                    try {
 ////                        textArea.write(new OutputStreamWriter(new FileOutputStream(file),
 ////                                "utf-8"));
@@ -645,16 +537,16 @@ public class Window extends JFrame implements ActionListener,Runnable {
 //                    } catch (Exception e) {
 //                        e.printStackTrace();
 //                    }
-                }
+            }
 //            }
         }
-        if( e.getSource() == SaveAs) {
+        if (e.getSource() == SaveAs) {
             //todo: Save file as 'filename'
         }
-        if( e.getSource() == Options) {
+        if (e.getSource() == Options) {
             //todo: check out specifications before attempting this.
         }
-        if( e.getSource() == Close) {
+        if (e.getSource() == Close) {
             //todo: Close program.
             //Show dialog to save the file
         }
@@ -663,18 +555,19 @@ public class Window extends JFrame implements ActionListener,Runnable {
     /**
      * Sets the color of the pen if an only the Pen Button has been clicked. Otherwise, leaves
      * the pen color as it is.
+     *
      * @param colorButtonClicked The color button that triggered the event.
      * @return pc Color of the pen.
      */
-    private Color setPenColor(JButton colorButtonClicked){
+    public static Color setPenColor(JButton colorButtonClicked) {
 
         Color pc = getCurrentPenColor();
 
-        if(penClicked){
+        if (penClicked) {
             pc = colorButtonClicked.getBackground();
             currentPenColorBtn.setBackground(pc);
             penColorChanged = true;
-        }else{
+        } else {
             penColorChanged = false;
         }
         return pc;
@@ -687,61 +580,61 @@ public class Window extends JFrame implements ActionListener,Runnable {
     /**
      * Sets the color of the fill if an only the Fill Button has been clicked. Otherwise, leaves
      * the fill color as it is.
+     *
      * @param colorButtonClicked The color button that triggered the event.
      * @return fc - Color of the fill.
      */
-    private Color setFillColor(JButton colorButtonClicked) {
+    public static Color setFillColor(JButton colorButtonClicked) {
 
         Color fc = getCurrentFillColor();
 
-        if (fillClicked){
+        if (fillClicked) {
             fc = colorButtonClicked.getBackground();
             currentFillColorBtn.setBackground(fc);
             fillColorChanged = true;
-        }else{
+        } else {
             fillColorChanged = false;
         }
         return fc;
     }
 
-    public static String getCurrentAction(){
+    public static String getCurrentAction() {
         return currentAction;
     }
 
     /**
      * Returns true if the current command is either "PLOT","LINE","RECTANGLE","ELLIPSE" or "POLYGON"
+     *
      * @param action
      * @return boolean - true or false
      */
-    public static boolean isDrawingCommand(String action){
-//        if (action != "CLEAR" && action != "PEN" && action != "FILL"){
-//            return true;
-//        }
-        if(action.contains("CLEAR") || action.contains("PEN") || action.contains("FILL") ||action.contains("REDO") || action.contains("UNDO")){
-            return false;
-        }
-        else {
+    public static boolean isDrawingCommand(String action) {
+        if (action.contains("PLOT") || action.contains("LINE") || action.contains("ELLIPSE") || action.contains("RECTANGLE") || action.contains("POLYGON")) {
             return true;
+        } else {
+            return false;
         }
     }
 
     /**
      * Gets the current pen color
+     *
      * @return Color - the current Pen color
      */
-    public static Color getCurrentPenColor(){
+    public static Color getCurrentPenColor() {
         return penColor;
     }
 
     /**
      * Gets the current fill color
+     *
      * @return Color - the current fill color
      */
-    public static Color getCurrentFillColor(){
+    public static Color getCurrentFillColor() {
         return fillColor;
     }
 
-    public static Canvas getDisplayPanel(){
+    public static Canvas getDisplayPanel() {
         return pnlDisplay;
     }
 }

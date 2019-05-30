@@ -20,7 +20,7 @@ public class Canvas extends JComponent {
     static double canvasHeight;
     private JFileChooser fileChooser;
 
-    // Arraylists shapes information:
+    // Arraylists that store shapes information:
     //  shapes: stores Shape form either PLOT, LINE, RECTANGLE or POLYGON
     //  shapePenColor: stores Pen Color
     //  shapeFillColor: stores Fill Color
@@ -30,11 +30,13 @@ public class Canvas extends JComponent {
     public ArrayList<Color> shapeFillColor = new ArrayList<>();
     public ArrayList<Boolean> shapeFilled = new ArrayList<>();
 
-
+    // Temporary Arrays to handle UNDO and REDO
     ArrayList<Shape> temp_shapes = new ArrayList<>();
     ArrayList<Color> temp_shapePenColor = new ArrayList<>();
     ArrayList<Color> temp_shapeFillColor = new ArrayList<>();
     ArrayList<Boolean> temp_shapeFilled = new ArrayList<>();
+
+
     static Point drawStart;
     static Point drawEnd;
 
@@ -48,9 +50,6 @@ public class Canvas extends JComponent {
     public Canvas() {
 
         setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
-
-//        canvasWidth = getSize().getWidth();
-//        canvasHeight = getSize().getHeight();
 
         this.addMouseListener(new MouseAdapter() {
 
