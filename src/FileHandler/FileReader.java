@@ -237,19 +237,21 @@ public class FileReader {
             y1 = coord_d.get(1)*canvas.getHeight();
             x2 = x1;
             y2 = y1;
+            //(5) Do drawing by adding necessary elements to the canvas.
+            canvas.shapes.add(canvas.defineShape(command,x1,y1,x2,y2));
         }
 //        else if(command =="POLYGON"){
-
+            canvas.shapes.add(canvas.drawPolygon(x1,y2,x1.lengt))
 //        }
         else{ //PLOT, LINE, RECTANGLE
             x1 = coord_d.get(0)*canvas.getWidth();
             y1 = coord_d.get(1)*canvas.getHeight();
             x2 = coord_d.get(2)*canvas.getWidth();
             y2 = coord_d.get(3)*canvas.getHeight();
+            //(5) Do drawing by adding necessary elements to the canvas.
+            canvas.shapes.add(canvas.defineShape(command,x1,y1,x2,y2));
         }
 
-        //(5) Do drawing by adding necessary elements to the canvas.
-        canvas.shapes.add(canvas.defineShape(command,x1,y1,x2,y2));
     }
 
 }

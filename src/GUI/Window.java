@@ -239,29 +239,29 @@ public class Window extends JFrame implements ActionListener, Runnable {
         toolBar.setRollover(true);      //displays info when hovering
 
         //Create ToolBar buttons
-        clearBtn = createButton("clear-s", "CLEAR", "(X) Clear", "Clear-Alt");
-        penBtn = createButton("pen-s", "PEN", "(D) Pen color", "Pen-Alt");
-        fillBtn = createButton("fill-s", "FILL", "(F) Fill color", "Fill-Alt");
+        clearBtn = createButton("clear-s", "CLEAR", "(Ctrl+Delete) Clear", "Clear-Alt");
+        penBtn = createButton("pen-s", "PEN", "(Ctrl+D) Pen color", "Pen-Alt");
+        fillBtn = createButton("fill-s", "FILL", "(Ctrl+F) Fill color", "Fill-Alt");
 
         fillCheckBox = new JCheckBox();
         fillCheckBox.addActionListener(eventsHandler);
         fillCheckBox.addKeyListener(eventsHandler);
         fillCheckBox.addItemListener(eventsHandler);
         checkBoxLabel = new JLabel();
-        checkBoxLabel.setToolTipText("(S) Fill shape");
+        checkBoxLabel.setToolTipText("(Ctrl+Shift+F) Fill shape");
         checkBoxLabel.setLabelFor(fillCheckBox);
         checkBoxLabel.setText("Fill OFF");
         checkBoxLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         checkBoxLabel.addMouseListener(eventsHandler);
 
-        plotBtn = createButton("plot-s", "PLOT", "(.) Plot", "Plot-Alt");
-        lineBtn = createButton("line-s", "LINE", "(L) Line", "Line-Alt");
-        rectangleBtn = createButton("rectangle-s", "RECTANGLE", "(R) Rectangle", "Rectangle-Alt");
-        ellipseBtn = createButton("ellipse-s", "ELLIPSE", "(E) Ellipse", "Ellipse-Alt");
-        polygonBtn = createButton("polygon-s", "POLYGON", "(P)Polygon", "Polygon-Alt");
+        plotBtn = createButton("plot-s", "PLOT", "(Ctrl+.) Plot", "Plot-Alt");
+        lineBtn = createButton("line-s", "LINE", "(Ctrl+L) Line", "Line-Alt");
+        rectangleBtn = createButton("rectangle-s", "RECTANGLE", "(Ctrl+R) Rectangle", "Rectangle-Alt");
+        ellipseBtn = createButton("ellipse-s", "ELLIPSE", "(Ctrl+E) Ellipse", "Ellipse-Alt");
+        polygonBtn = createButton("polygon-s", "POLYGON", "(Ctrl+P)Polygon", "Polygon-Alt");
 
-        undoBtn = createButton("undo-s", "UNDO", "(Z) Undo the last drawing", "Undo-Alt");
-        redoBtn = createButton("redo-s", "REDO", "(Y) Redraw the last removed drawing", "Redo-Alt");
+        undoBtn = createButton("undo-s", "UNDO", "(Ctrl+Z) Undo the last drawing", "Undo-Alt");
+        redoBtn = createButton("redo-s", "REDO", "(Ctrl+Shift+Z) Redo the last removed drawing", "Redo-Alt");
 
         //Add button to the toolbar
         toolBar.add(penBtn);
@@ -329,7 +329,7 @@ public class Window extends JFrame implements ActionListener, Runnable {
         orangeBtn = createColorButton(Color.ORANGE);
         redBtn = createColorButton(Color.RED);
         magentaBtn = createColorButton(Color.MAGENTA);
-        customBtn = createButton("custom-s", "CUSTOM", "Custom Color", "Custom-Alt");
+        customBtn = createButton("custom-s", "CUSTOM", "(Ctrl+Shift+C) Custom Color", "Custom-Alt");
         customBtn.setPreferredSize(new Dimension(140, 60));
         customBtn.setMinimumSize(new Dimension(140, 60));
 

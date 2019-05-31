@@ -5,8 +5,10 @@ import java.awt.*;
 import java.awt.event.*;
 
 import static GUI.Window.*;
+import static java.awt.event.InputEvent.*;
 
 public class EventsHandler extends MouseAdapter implements ActionListener, ItemListener, KeyListener {
+
 
     @Override
     public void keyTyped(KeyEvent e) {
@@ -16,46 +18,55 @@ public class EventsHandler extends MouseAdapter implements ActionListener, ItemL
     @Override
     public void keyPressed(KeyEvent e) {
 
-        if (e.getKeyChar() == 'z' || e.getKeyChar() == 'Z') {
+        // Get extended modifiers
+        int mod = e.getModifiersEx();
+        int key = e.getKeyCode();
+
+
+        if ((key == KeyEvent.VK_Z) && ((mod & CTRL_DOWN_MASK) != 0 && ((mod & SHIFT_DOWN_MASK) == 0))) {
+
             try {
                 getDisplayPanel().undo();
             } catch (Exception ex) {
                 showInformationMessage("Undo", "There are no drawings to undo");
             }
         }
-        if (e.getKeyChar() == 'y' || e.getKeyChar() == 'Y') {
+        if ((key == KeyEvent.VK_Z) && ((mod & CTRL_DOWN_MASK) != 0) && ((mod & SHIFT_DOWN_MASK) != 0)) {
             try {
-                getDisplayPanel().forward();
+                getDisplayPanel().redo();
             } catch (Exception ex) {
                 showInformationMessage("Redo", "There are no drawings to redo");
             }
         }
-        if (e.getKeyChar() == '.') {
+        if ((key == KeyEvent.VK_PERIOD) && ((mod & CTRL_DOWN_MASK) != 0)) {
             plotBtn.doClick();
         }
-        if (e.getKeyChar() == 'l'|| e.getKeyChar() == 'L') {
+        if ((key == KeyEvent.VK_L) && ((mod & CTRL_DOWN_MASK) != 0)) {
             lineBtn.doClick();
         }
-        if (e.getKeyChar() == 'r'|| e.getKeyChar() == 'R') {
+        if ((key == KeyEvent.VK_R) && ((mod & CTRL_DOWN_MASK) != 0)) {
             rectangleBtn.doClick();
         }
-        if (e.getKeyChar() == 'e'|| e.getKeyChar() == 'E') {
+        if ((key == KeyEvent.VK_E) && ((mod & CTRL_DOWN_MASK) != 0)) {
             ellipseBtn.doClick();
         }
-        if (e.getKeyChar() == 'p'|| e.getKeyChar() == 'P') {
+        if ((key == KeyEvent.VK_P) && ((mod & CTRL_DOWN_MASK) != 0)) {
             polygonBtn.doClick();
         }
-        if (e.getKeyChar() == 'f'|| e.getKeyChar() == 'F') {
+        if ((key == KeyEvent.VK_F) && ((mod & CTRL_DOWN_MASK) != 0) && ((mod & SHIFT_DOWN_MASK) == 0)) {
             fillBtn.doClick();
         }
-        if (e.getKeyChar() == 'd'|| e.getKeyChar() == 'D') {
-            penBtn.doClick();
-        }
-        if (e.getKeyChar() == 's'|| e.getKeyChar() == 'S') {
+        if ((key == KeyEvent.VK_F) && ((mod & CTRL_DOWN_MASK) != 0) && ((mod & SHIFT_DOWN_MASK) != 0)) {
             fillCheckBox.doClick();
         }
-        if (e.getKeyChar() == 'x'|| e.getKeyChar() == 'X') {
+        if ((key == KeyEvent.VK_D) && ((mod & CTRL_DOWN_MASK) != 0)) {
+            penBtn.doClick();
+        }
+        if ((key == KeyEvent.VK_DELETE) && ((mod & CTRL_DOWN_MASK) != 0)) {
             clearBtn.doClick();
+        }
+        if ((key == KeyEvent.VK_C) && ((mod & CTRL_DOWN_MASK) != 0) && ((mod & SHIFT_DOWN_MASK) != 0)){
+            customBtn.doClick();
         }
 
     }
@@ -68,11 +79,10 @@ public class EventsHandler extends MouseAdapter implements ActionListener, ItemL
     @Override
     public void actionPerformed(ActionEvent e) {
 
-
         try {
             Object src = e.getSource();
 
-            if (isDrawingCommand( ((JButton) src).getActionCommand()  )) {
+            if (isDrawingCommand(((JButton) src).getActionCommand())) {
                 currentAction = ((JButton) src).getActionCommand();
                 commmandSelectedLabel.setText("Command: " + getCurrentAction());
             }
@@ -149,7 +159,7 @@ public class EventsHandler extends MouseAdapter implements ActionListener, ItemL
                 }
             } else if (src == redoBtn) {
                 try {
-                    pnlDisplay.forward();
+                    pnlDisplay.redo();
                 } catch (Exception ex) {
                     showInformationMessage("Redo", "There are no drawings to redo");
                 }
@@ -169,10 +179,10 @@ public class EventsHandler extends MouseAdapter implements ActionListener, ItemL
     @Override
     public void itemStateChanged(ItemEvent e) {
         Object src = e.getItemSelectable();
-        if( src == fillCheckBox){
-            if(fillCheckBox.isSelected())
-            checkBoxLabel.setText("Fill ON ");
-            else{
+        if (src == fillCheckBox) {
+            if (fillCheckBox.isSelected())
+                checkBoxLabel.setText("Fill ON ");
+            else {
                 checkBoxLabel.setText("Fill OFF");
             }
         }
