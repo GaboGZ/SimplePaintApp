@@ -1,40 +1,48 @@
-package GUI;
+/*
+    Author: Gabriel Garate Zea
+    Student ID: N10023780
+    Unit: CAB302 - Software Development
+    Assignment: Project 2
+    Due Date: 2-June-2019
+    Queensland University of Technology
+    Brisbane, QLD, Australia.
+ */
 
-import FileHandler.FileReader;
+package GUI;
 
 import javax.swing.*;
 import javax.swing.border.EtchedBorder;
 import java.awt.*;
-import java.awt.event.*;
 import java.net.URL;
-import java.io.File;
-
 import Listeners.*;
 
-
-public class Window extends JFrame implements ActionListener, Runnable {
+/**
+ * This class contains all the Java Swing elements that create the GUI.
+ */
+public class VectorImagePlotter extends JFrame implements Runnable {
 
 
     //Constants
-    private static final int MIN_WIDTH = 750;
-    private static final int MIN_HEIGHT = 700;
+    private static final int MIN_WIDTH = 675;
+    private static final int MIN_HEIGHT = 675;
+    public static final Color PANEL_BACKGROUND = Color.WHITE;
+    public static final Color CANVAS_BACKGROUND = Color.GRAY;
 
 
     //Elements
-    private JMenuBar menuBar;
-    private JMenu menuFile, menuHome, menuView;
-    private JMenuItem New, Open, Save, SaveAs, Options, Close;
+    public JMenuBar menuBar;
+    public JMenu File;
+    public static JMenuItem New, Open, Save, SaveAs, Exit;
 
     public static JPanel mainPanel;
-    private JPanel pnlUp, pnlUp_Up, pnlUp_Down, toolsPanel, palettePanel;
-    private JPanel pnlLeft, pnlRight;
-    private JPanel pnlDown, pnlDown_Up, pnlDown_Down;
-    public static Canvas pnlDisplay;
+    private JPanel pnlUp, toolsPanel, palettePanel;
+    private JPanel pnlCenter, pnlCenter_Left, pnlCenter_Right, pnlCenter_Up, pnlCenter_Down;
+    private JPanel pnlDown;
+    private static Canvas pnlDisplay;
 
     private JToolBar toolBar;
 
     EventsHandler eventsHandler;
-    ActionListener actionListener;
     public static JButton plotBtn;
     public static JButton lineBtn;
     public static JButton rectangleBtn;
@@ -62,7 +70,7 @@ public class Window extends JFrame implements ActionListener, Runnable {
     public static JButton currentPenColorBtn;
     private JLabel currentPenColorLabel;
     public static JCheckBox fillCheckBox;
-    public static  JLabel checkBoxLabel;
+    public static JLabel checkBoxLabel;
     public static JButton currentFillColorBtn;
     private JLabel currentFillColorLabel;
 
@@ -74,31 +82,35 @@ public class Window extends JFrame implements ActionListener, Runnable {
     static boolean penColorChanged = false;
     static boolean fillColorChanged = false;
 
-
+    /**
+     * Method implement from the Runnable interface that allows the GUI creation to run on a
+     * separate thread.
+     */
     @Override
     public void run() {
         createAndDisplayGUI();
     }
 
+    /**
+     * Create the GUI with all the necessary elements.
+     */
     private void createAndDisplayGUI() {
 
-        JFrame.setDefaultLookAndFeelDecorated(true);
-        JFrame Window = new JFrame();
+        this.setDefaultLookAndFeelDecorated(true);
 
         //Set GUI
         setTitle("CAB302 | Java Project");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-//        setSize(WIDTH,HEIGHT);
-        setMinimumSize(new Dimension(MIN_WIDTH, MIN_HEIGHT));
+        this.setPreferredSize(new Dimension(MIN_WIDTH, MIN_HEIGHT));
+        this.setMinimumSize(new Dimension(MIN_WIDTH, MIN_HEIGHT));
         setLayout(new BorderLayout());
-
         eventsHandler = new EventsHandler();
 
         //Add components
-        createMenuBar();
-        createMainPanel();      // main container.
-        createToolbar();        //Drawing tools
-        createColorPalette();
+        createMainPanel();      // Main container.
+        createMenuBar();        // Top Menu
+        createToolbar();        // Drawing tools
+        createColorPalette();   // Color tools
         createStatusBar();
 
 
@@ -112,7 +124,7 @@ public class Window extends JFrame implements ActionListener, Runnable {
     }
 
     /**
-     * Created the main panel that contains all other panels.
+     * Creates the main panel that contains all other panels.
      */
     private void createMainPanel() {
         // Create main Panel
@@ -126,37 +138,33 @@ public class Window extends JFrame implements ActionListener, Runnable {
      */
     public void createChildPanels() {
         // Upper Panels
-        pnlUp = createPanel(Color.WHITE, new BorderLayout());
+        pnlUp = createPanel(PANEL_BACKGROUND, new GridLayout(2, 1));
+        toolsPanel = createPanel(PANEL_BACKGROUND);
+        palettePanel = createPanel(PANEL_BACKGROUND, new FlowLayout());
+        pnlUp.add(toolsPanel);
+        pnlUp.add(palettePanel);
 
-        pnlUp_Up = createPanel(Color.WHITE, new BorderLayout());
-        toolsPanel = createPanel(Color.WHITE);
-        palettePanel = createPanel(Color.WHITE, new BorderLayout());
-        pnlUp_Up.add(toolsPanel, BorderLayout.NORTH);
-        pnlUp_Up.add(palettePanel, BorderLayout.SOUTH);
+        // Center Panel
+        pnlCenter = createPanel(PANEL_BACKGROUND, new BorderLayout());
+        pnlDisplay = new Canvas(); // Center Panel | Used to draw shapes
+        pnlCenter_Up = createPanel(CANVAS_BACKGROUND);//Surrounds Canvas
+        pnlCenter_Down = createPanel(CANVAS_BACKGROUND);//Surrounds Canvas
+        pnlCenter_Left = createPanel(CANVAS_BACKGROUND);//Surrounds Canvas
+        pnlCenter_Right = createPanel(CANVAS_BACKGROUND);//Surrounds Canvas
 
-        pnlUp_Down = createPanel(Color.GRAY); //Surrounds Canvas
-        pnlUp.add(pnlUp_Up, BorderLayout.NORTH);
-        pnlUp.add(pnlUp_Down, BorderLayout.SOUTH);
-
-        // Side Panels
-        pnlLeft = createPanel(Color.GRAY);//Surrounds Canvas
-        pnlRight = createPanel(Color.GRAY);//Surrounds Canvas
+        pnlCenter.add(pnlDisplay, BorderLayout.CENTER);
+        pnlCenter.add(pnlCenter_Up, BorderLayout.NORTH);
+        pnlCenter.add(pnlCenter_Down, BorderLayout.SOUTH);
+        pnlCenter.add(pnlCenter_Left, BorderLayout.WEST);
+        pnlCenter.add(pnlCenter_Right, BorderLayout.EAST);
 
         // Button Panel
-        pnlDown = createPanel(Color.GRAY, new BorderLayout());
-        pnlDown_Up = createPanel(Color.GRAY);//Surrounds Canvas
-        pnlDown_Down = createPanel(Color.WHITE, new BorderLayout()); //Status Bar Panel
-        pnlDown.add(pnlDown_Up, BorderLayout.NORTH);
-        pnlDown.add(pnlDown_Down, BorderLayout.SOUTH);
-
-        pnlDisplay = new Canvas(); // Center Panel | Used to draw shapes
+        pnlDown = createStatusBar();
 
         //Add child panels to the Main Panel
         mainPanel.add(pnlUp, BorderLayout.NORTH);
-        mainPanel.add(pnlLeft, BorderLayout.WEST);
-        mainPanel.add(pnlRight, BorderLayout.EAST);
+        mainPanel.add(pnlCenter, BorderLayout.CENTER);
         mainPanel.add(pnlDown, BorderLayout.SOUTH);
-        mainPanel.add(pnlDisplay, BorderLayout.CENTER);
 
     }
 
@@ -168,65 +176,33 @@ public class Window extends JFrame implements ActionListener, Runnable {
         menuBar = new JMenuBar();
         menuBar.setOpaque(true);
         menuBar.setBackground(Color.WHITE);
-//        menuBar.setPreferredSize(new Dimension(WIDTH,20));
+        menuBar.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
 
         //File Menu
-        menuFile = new JMenu("File");
-
-        //Menu Items
+        File = new JMenu("File");
         New = new JMenuItem("New");
         Open = new JMenuItem("Open");
         Save = new JMenuItem("Save");
         SaveAs = new JMenuItem("Save as");
-        Options = new JMenuItem("Options");
-        Close = new JMenuItem("Close");
+        Exit = new JMenuItem("Exit");
 
-        //Add Listeners //todo: can I implement listeners here?
-        New.addActionListener(this);
-        Open.addActionListener(this);
-        Save.addActionListener(this);
-        SaveAs.addActionListener(this);
-        Options.addActionListener(this);
-        Close.addActionListener(this);
-
-        //Add components to the File Menu
-        menuFile.add(New);
-        menuFile.add(Open);
-        menuFile.add(Save);
-        menuFile.add(SaveAs);
-        menuFile.add(Options);
-        menuFile.add(Close);
-
-        //Home Menu | Includes Palette
-        menuHome = new JMenu("Home");
-
-        //View Menu
-        menuView = new JMenu("View");
+        New.addActionListener(eventsHandler);
+        Open.addActionListener(eventsHandler);
+        Save.addActionListener(eventsHandler);
+        SaveAs.addActionListener(eventsHandler);
+        Exit.addActionListener(eventsHandler);
 
         //Add Menu elements to the menu bar
-        menuBar.add(menuFile);
-        menuBar.add(menuHome);
-        menuBar.add(menuView);
+        menuBar.add(File);
+        File.add(New);
+        File.add(Open);
+        File.add(Save);
+        File.add(SaveAs);
+        File.add(Exit);
 
         //Add menu bar to the main window
         this.setJMenuBar(menuBar);
-
-        //Set up file chooser
-        createFileChooser();
-    }
-
-
-    /**
-     * Create a new instance of the FileChooser class.
-     */
-    public void createFileChooser() {
-
-        fileChooser = new JFileChooser();
-        fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-
-        //Create filtered view
-        fileChooser.addChoosableFileFilter(new FileVecFilter());
-        fileChooser.setAcceptAllFileFilterUsed(false);
     }
 
     /**
@@ -234,6 +210,7 @@ public class Window extends JFrame implements ActionListener, Runnable {
      */
     private void createToolbar() {
         toolBar = new JToolBar();
+        toolBar.setLayout(new FlowLayout());
         toolBar.setBorder(BorderFactory.createTitledBorder("Drawing Tools"));
         toolBar.setFloatable(false);    //fixed toolBar
         toolBar.setRollover(true);      //displays info when hovering
@@ -268,7 +245,7 @@ public class Window extends JFrame implements ActionListener, Runnable {
         toolBar.add(fillBtn);
         toolBar.add(fillCheckBox);
         toolBar.add(checkBoxLabel);
-        toolBar.addSeparator();
+//        toolBar.addSeparator();
 
         toolBar.add(plotBtn);
         toolBar.add(lineBtn);
@@ -286,25 +263,22 @@ public class Window extends JFrame implements ActionListener, Runnable {
      */
     public void createColorPalette() {
 
-        colorPalette = createPanel(Color.WHITE, new FlowLayout());
+        colorPalette = createPanel(PANEL_BACKGROUND, new GridLayout(1, 3));
 
-
-        JPanel pLeft = createPanel(Color.WHITE, new BorderLayout());
+        JPanel pLeft = createPanel(PANEL_BACKGROUND, new GridLayout(2, 1));
         pLeft.setBorder(BorderFactory.createTitledBorder("Current Colors"));
-        pLeft.setPreferredSize(new Dimension(150, 100));
 
         JPanel pLeft_up = new JPanel();
         JPanel pLeft_down = new JPanel();
 
-        JPanel pCenter = createPanel(Color.WHITE, new BorderLayout());
+        JPanel pCenter = createPanel(PANEL_BACKGROUND, new GridLayout(2, 1));
         pCenter.setBorder(BorderFactory.createTitledBorder("Color Palette"));
-        pCenter.setPreferredSize(new Dimension(250, 100));
         JPanel pCenter_up = new JPanel();
         JPanel pCenter_down = new JPanel();
 
-        JPanel pRight = createPanel(Color.WHITE);
+        JPanel pRight = createPanel(PANEL_BACKGROUND);
         pRight.setBorder(BorderFactory.createTitledBorder("Custom Color"));
-        pRight.setPreferredSize(new Dimension(150, 100));
+
 
         currentPenColorBtn = createColorButton(penColor);
         currentPenColorBtn.setEnabled(false);
@@ -330,8 +304,8 @@ public class Window extends JFrame implements ActionListener, Runnable {
         redBtn = createColorButton(Color.RED);
         magentaBtn = createColorButton(Color.MAGENTA);
         customBtn = createButton("custom-s", "CUSTOM", "(Ctrl+Shift+C) Custom Color", "Custom-Alt");
-        customBtn.setPreferredSize(new Dimension(140, 60));
-        customBtn.setMinimumSize(new Dimension(140, 60));
+        customBtn.setPreferredSize(new Dimension(140, 50));
+        customBtn.setMinimumSize(new Dimension(140, 50));
 
 
         // Add components to panel
@@ -353,24 +327,24 @@ public class Window extends JFrame implements ActionListener, Runnable {
         pCenter_down.add(redBtn);
         pCenter_down.add(magentaBtn);
 
-        pLeft.add(pLeft_up, BorderLayout.NORTH);
-        pLeft.add(pLeft_down, BorderLayout.SOUTH);
-        pCenter.add(pCenter_up, BorderLayout.NORTH);
-        pCenter.add(pCenter_down, BorderLayout.SOUTH);
+        pLeft.add(pLeft_up);
+        pLeft.add(pLeft_down);
+        pCenter.add(pCenter_up);
+        pCenter.add(pCenter_down);
         pRight.add(customBtn);
 
-        colorPalette.add(pLeft, FlowLayout.LEFT);
-        colorPalette.add(pCenter, FlowLayout.CENTER);
-        colorPalette.add(pRight, FlowLayout.RIGHT);
-        palettePanel.add(colorPalette, BorderLayout.CENTER);
+        colorPalette.add(pLeft);
+        colorPalette.add(pCenter);
+        colorPalette.add(pRight);
+        palettePanel.add(colorPalette);
     }
 
     /**
      * Creates the status bar.
      */
-    public void createStatusBar() {
+    public JPanel createStatusBar() {
 
-        statusBar = createPanel(Color.WHITE, new BorderLayout());
+        statusBar = createPanel(PANEL_BACKGROUND, new BorderLayout());
         statusBar.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
 
         coordLabel = new JLabel();
@@ -382,13 +356,13 @@ public class Window extends JFrame implements ActionListener, Runnable {
 
         zoomLabel = new JLabel();
         zoomLabel.setText("Zoom: 100%");
-        zoomLabel.setBackground(Color.WHITE);
+        zoomLabel.setHorizontalTextPosition(SwingConstants.RIGHT);
 
         statusBar.add(coordLabel, BorderLayout.WEST);
         statusBar.add(commmandSelectedLabel, BorderLayout.CENTER);
         statusBar.add(zoomLabel, BorderLayout.EAST);
 
-        pnlDown_Down.add(statusBar);
+        return statusBar;
 
     }
 
@@ -429,7 +403,7 @@ public class Window extends JFrame implements ActionListener, Runnable {
     private JButton createColorButton(Color color) {
 
         JButton button = new JButton();
-        button.setPreferredSize(new Dimension(25, 25));
+        button.setPreferredSize(new Dimension(20, 20));
         button.setActionCommand("CHANGE_COLOR");
         button.setBackground(color);
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -450,14 +424,14 @@ public class Window extends JFrame implements ActionListener, Runnable {
 
         //Look for the image.
         String imgLocation = "images/" + imageName + ".png";
-        URL imageURL = Window.class.getResource(imgLocation);
+        URL imageURL = VectorImagePlotter.class.getResource(imgLocation);
 
         //Create and initialize the button.
         JButton button = new JButton();
         button.setActionCommand(actionCommand);
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         button.setToolTipText(toolTipText);
-        button.setMaximumSize(new Dimension(75, 75));
+        button.setPreferredSize(new Dimension(50, 50));
 
         if (imageURL != null) { //image found
             button.setIcon(new ImageIcon(imageURL, altText));
@@ -471,6 +445,12 @@ public class Window extends JFrame implements ActionListener, Runnable {
         return button;
     }
 
+    /**
+     * Provides an easier way to show a warning message.
+     * @param title
+     * @param message
+     * @return
+     */
     public static int showWarningMessage(String title, String message) {
         Object[] options = {"Ok", "Cancel"};
         int warningResponse = JOptionPane.showOptionDialog(pnlDisplay,
@@ -484,9 +464,15 @@ public class Window extends JFrame implements ActionListener, Runnable {
         return warningResponse;
     }
 
+    /**
+     * Provides an easier way to display and information message.
+     * @param title
+     * @param message
+     * @return
+     */
     public static int showInformationMessage(String title, String message) {
         Object[] options = {"OK"};
-        int dialogResponse = JOptionPane.showOptionDialog(Window.getDisplayPanel(),
+        int dialogResponse = JOptionPane.showOptionDialog(VectorImagePlotter.getDisplayPanel(),
                 message,
                 title,
                 JOptionPane.OK_OPTION,
@@ -495,61 +481,6 @@ public class Window extends JFrame implements ActionListener, Runnable {
                 options,
                 options[0]);
         return dialogResponse;
-    }
-
-    /*      EVENT LISTENERS     */
-    @Override
-    public void actionPerformed(ActionEvent e) {
-
-        if (e.getSource() == Open) {
-            int returnVal = fileChooser.showOpenDialog(this);
-
-            if (returnVal == JFileChooser.APPROVE_OPTION) {
-                String dir = fileChooser.getCurrentDirectory().toString();
-                File file = fileChooser.getSelectedFile();
-                FileReader fr = new FileReader();
-                fr.readFile(dir, file.getName());
-            } else {
-                System.out.println("Open command cancelled by user." + "\n");
-            }
-        }
-
-        if (e.getSource() == New) {
-            //todo: Create new File
-        }
-        if (e.getSource() == Save) {
-            //todo: Save File
-//            protected void saveToFile() {
-            JFileChooser fileChooser = new JFileChooser();
-            int retval = fileChooser.showSaveDialog(Save);
-            if (retval == JFileChooser.APPROVE_OPTION) {
-                File file = fileChooser.getSelectedFile();
-                if (file == null) {
-                    return;
-                }
-                if (!file.getName().toLowerCase().endsWith(".VEC")) {
-                    file = new File(file.getParentFile(), file.getName() + ".VEC");
-                }
-//                    try {
-////                        textArea.write(new OutputStreamWriter(new FileOutputStream(file),
-////                                "utf-8"));
-//                        Desktop.getDesktop().open(file);
-//                    } catch (Exception e) {
-//                        e.printStackTrace();
-//                    }
-            }
-//            }
-        }
-        if (e.getSource() == SaveAs) {
-            //todo: Save file as 'filename'
-        }
-        if (e.getSource() == Options) {
-            //todo: check out specifications before attempting this.
-        }
-        if (e.getSource() == Close) {
-            //todo: Close program.
-            //Show dialog to save the file
-        }
     }
 
     /**
@@ -573,10 +504,6 @@ public class Window extends JFrame implements ActionListener, Runnable {
         return pc;
     }
 
-//    public static void setPenColor(Color color){
-//        this.penColor = color;
-//    }
-
     /**
      * Sets the color of the fill if an only the Fill Button has been clicked. Otherwise, leaves
      * the fill color as it is.
@@ -598,6 +525,10 @@ public class Window extends JFrame implements ActionListener, Runnable {
         return fc;
     }
 
+    /**
+     * Returns the current action command.
+     * @return
+     */
     public static String getCurrentAction() {
         return currentAction;
     }
@@ -634,7 +565,12 @@ public class Window extends JFrame implements ActionListener, Runnable {
         return fillColor;
     }
 
+    /**
+     * Return the panel containing the display Canvas.
+     * @return
+     */
     public static Canvas getDisplayPanel() {
         return pnlDisplay;
     }
+
 }

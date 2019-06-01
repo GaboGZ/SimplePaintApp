@@ -1,14 +1,38 @@
+/*
+    Author: Gabriel Garate Zea
+    Student ID: N10023780
+    Unit: CAB302 - Software Development
+    Assignment: Project 2
+    Due Date: 2-June-2019
+    Queensland University of Technology
+    Brisbane, QLD, Australia.
+ */
+
 package Listeners;
+
+import FileHandler.VectorFileReader;
+import FileHandler.FileVecFilter;
+import GUI.VectorImagePlotter;
+
+import static GUI.VectorImagePlotter.*;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 
-import static GUI.Window.*;
 import static java.awt.event.InputEvent.*;
+
 
 public class EventsHandler extends MouseAdapter implements ActionListener, ItemListener, KeyListener {
 
+    private File newfile;
+    private Path tempFile;
+    private String newFileDirectory;
 
     @Override
     public void keyTyped(KeyEvent e) {
@@ -65,7 +89,7 @@ public class EventsHandler extends MouseAdapter implements ActionListener, ItemL
         if ((key == KeyEvent.VK_DELETE) && ((mod & CTRL_DOWN_MASK) != 0)) {
             clearBtn.doClick();
         }
-        if ((key == KeyEvent.VK_C) && ((mod & CTRL_DOWN_MASK) != 0) && ((mod & SHIFT_DOWN_MASK) != 0)){
+        if ((key == KeyEvent.VK_C) && ((mod & CTRL_DOWN_MASK) != 0) && ((mod & SHIFT_DOWN_MASK) != 0)) {
             customBtn.doClick();
         }
 
@@ -87,6 +111,7 @@ public class EventsHandler extends MouseAdapter implements ActionListener, ItemL
                 commmandSelectedLabel.setText("Command: " + getCurrentAction());
             }
 
+            // Detecting color button events
             if (((((JButton) src).getActionCommand() == "CHANGE_COLOR"))) {
                 if (src == blackBtn) {
                     penColor = setPenColor(blackBtn);
@@ -125,7 +150,9 @@ public class EventsHandler extends MouseAdapter implements ActionListener, ItemL
                     penColor = setPenColor(magentaBtn);
                     fillColor = setFillColor(magentaBtn);
                 }
-            } else if (src == customBtn) {
+            }
+            // Detecting tools events
+            if (src == customBtn) {
                 // Display JColorChooser
                 Color newColor = JColorChooser.showDialog(mainPanel, "Pick a color", mainPanel.getBackground());
 
@@ -148,18 +175,19 @@ public class EventsHandler extends MouseAdapter implements ActionListener, ItemL
 
                 //If "Ok" clear all drawings
                 if (Response == 0) {
-                    pnlDisplay.clearDrawings(true);
-                    pnlDisplay.repaint();
+                    getDisplayPanel().clearDrawings(true);
+                    clearTempFile();
+                    getDisplayPanel().repaint();
                 }
             } else if (src == undoBtn) {
                 try {
-                    pnlDisplay.undo();
+                    getDisplayPanel().undo();
                 } catch (Exception ex) {
                     showInformationMessage("Undo", "There are no drawings to undo");
                 }
             } else if (src == redoBtn) {
                 try {
-                    pnlDisplay.redo();
+                    getDisplayPanel().redo();
                 } catch (Exception ex) {
                     showInformationMessage("Redo", "There are no drawings to redo");
                 }
@@ -170,16 +198,150 @@ public class EventsHandler extends MouseAdapter implements ActionListener, ItemL
                 penClicked = false;
                 fillClicked = true;
             }
+
         } catch (ClassCastException e1) {
 //            e1.printStackTrace();
 //            System.out.println("JCheckBox cannot be cast to class JButton");
         }
+
+        try {
+
+            // Detecting menu items events
+            Object source = e.getSource();
+            JMenuItem src = (JMenuItem) source;
+
+            // Get a fileChoose on open selection mode
+            JFileChooser fc = new JFileChooser();
+            fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+            // Filter the view to vector files and directories only.
+            fc.addChoosableFileFilter(new FileVecFilter());
+            fc.setAcceptAllFileFilterUsed(false);
+
+
+            if (src == Open) {
+
+                fc.setDialogTitle("Open a file");
+                int returnVal = fc.showOpenDialog(VectorImagePlotter.getDisplayPanel());
+
+                if (returnVal == JFileChooser.APPROVE_OPTION) {
+
+                    // Open a file and store its name and directory location
+                    String directory = fc.getCurrentDirectory().toString();
+                    File loaded = fc.getSelectedFile();
+                    VectorFileReader fr = new VectorFileReader();
+                    fr.readFile(directory, loaded.getName());
+
+                    // Copy the content of the loaded file into the temporary file.
+                    try{
+                        // Copy loaded file content into the temp file for editing.
+                        tempFile = Paths.get("C:/cab302/project/files/temp.vec");
+                        Path loadedFile = Paths.get(directory, loaded.getName());
+                        // .copy(source,target);
+                        Files.copy(loadedFile,tempFile, StandardCopyOption.REPLACE_EXISTING);
+                        Desktop.getDesktop().open(tempFile.toFile());
+                    }catch(Exception ex){ }
+                }
+
+            } else if (src == New) {
+
+                // Indicate user that drawing will be cleared if they are now saved
+                if (getDisplayPanel().clearDrawings(false)) {
+                    clearTempFile();
+                    //Save As is called from clearDrawings();
+
+                    // Get a fileChooser on open selection mode.
+                    fc.setDialogTitle("Create a new file");
+                    int choice = fc.showSaveDialog(VectorImagePlotter.getDisplayPanel());
+
+                    if (choice == JFileChooser.APPROVE_OPTION) {
+                        newfile = fc.getSelectedFile();
+                        newFileDirectory = fc.getCurrentDirectory().toString();
+
+                        VectorImagePlotter.getFrames()[0].setTitle("CAB302 | " + newfile.getName());
+
+
+                        if (newfile == null) {
+                            return;
+                        }
+
+                        //validate vector file
+                        if (!newfile.getName().toLowerCase().endsWith(".vec")) {
+                            newfile = new File(newfile.getParentFile(), newfile.getName() + ".vec");
+                        }
+
+                        try {
+                            PrintWriter writer = new PrintWriter(newfile);
+                            writer.print("I AM A NEW FILE");
+                            writer.close();
+                        } catch (Exception e2) {
+//                            e2.printStackTrace();
+                        }
+                    }
+
+                }
+
+
+            } else if (src == Save) {
+                try {
+
+                    if(newfile != null){
+
+                        // Copy the content of the temporary file into the user new file.
+                        tempFile = Paths.get("C:/cab302/project/files/temp.vec");
+                        Path targetFile = Paths.get(newFileDirectory, newfile.getName());
+                        Files.copy(tempFile, targetFile, StandardCopyOption.REPLACE_EXISTING);
+                        Desktop.getDesktop().open(newfile);
+
+                    }else{
+                        System.out.println("Creating a new file.");
+                        New.doClick();
+                    }
+
+                } catch (Exception e2) {
+                    e2.printStackTrace();
+                }
+
+            } else if (src == SaveAs) {
+
+                fc.setDialogTitle("Save a file as...");
+                int choice = fc.showSaveDialog(VectorImagePlotter.getDisplayPanel());
+                if (choice == JFileChooser.APPROVE_OPTION) {
+                    File file = fc.getSelectedFile();
+                    String directory = fc.getCurrentDirectory().toString();
+                    if (file == null) {
+                        return;
+                    }
+                    if (!file.getName().toLowerCase().endsWith(".vec")) {
+                        file = new File(file.getParentFile(), file.getName() + ".vec");
+                    }
+                    try {
+
+                        // Copy the content of the temporary file into the user file.
+                        Path tempFile = Paths.get("C:/cab302/project/files/temp.vec");
+                        Path targetFile = Paths.get(directory, file.getName());
+                        Files.copy(tempFile, targetFile, StandardCopyOption.REPLACE_EXISTING);
+                        Desktop.getDesktop().open(file);
+
+                    } catch (Exception e2) {
+                        e2.printStackTrace();
+                    }
+                }
+            } else if (src == Exit) {
+
+                //Clear temporary file for future use.
+                clearTempFile();
+                System.exit(0);
+            }
+        } catch (ClassCastException e2) {
+//            e1.printStackTrace();
+        }
     }
+
 
     @Override
     public void itemStateChanged(ItemEvent e) {
-        Object src = e.getItemSelectable();
-        if (src == fillCheckBox) {
+        Object s = e.getItemSelectable();
+        if (s == fillCheckBox) {
             if (fillCheckBox.isSelected())
                 checkBoxLabel.setText("Fill ON ");
             else {
@@ -194,4 +356,17 @@ public class EventsHandler extends MouseAdapter implements ActionListener, ItemL
         super.mouseClicked(e);
         fillCheckBox.doClick();
     }
+
+    public void clearTempFile() {
+        Path tempFile = Paths.get("C:/cab302/project/files/temp.vec");
+        try {
+            PrintWriter writer = null;
+            writer = new PrintWriter(tempFile.toFile());
+            writer.print("");
+            writer.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
 }

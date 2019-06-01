@@ -1,24 +1,33 @@
+/*
+    Author: Gabriel Garate Zea
+    Student ID: N10023780
+    Unit: CAB302 - Software Development
+    Assignment: Project 2
+    Due Date: 2-June-2019
+    Queensland University of Technology
+    Brisbane, QLD, Australia.
+ */
+
 package FileHandler;
 
-import GUI.Window;
+import GUI.VectorImagePlotter;
 
 import java.awt.*;
 import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Iterator;
 
 /**
- * FileReader class used to read and perform drawings based on a .VEC file.
+ * VectorFileReader class used to read and perform drawings
+ * on the Canvas class based on a .VEC file.
  */
-public class FileReader {
+public class VectorFileReader {
 
-    String textFile;
     Charset ch;
     GUI.Canvas canvas;
-    Color penColor = Window.getCurrentPenColor();
-    Color fillColor = Window.getCurrentFillColor();
+    Color penColor = VectorImagePlotter.getCurrentPenColor();
+    Color fillColor = VectorImagePlotter.getCurrentFillColor();
     boolean fillShape = false;
 
     /**
@@ -30,14 +39,14 @@ public class FileReader {
      * @param charset
      * @return
      */
-    public String readFile(String directory, String sourceFile, String charset) {
+    public void readFile(String directory, String sourceFile, String charset) {
 
         System.out.println("Source File: " + sourceFile);
 
         File file = new File(directory + "/" + sourceFile);
         setCharset(charset);
 
-        canvas = Window.getDisplayPanel();
+        canvas = VectorImagePlotter.getDisplayPanel();
 
         if (canvas.clearDrawings(false)) {
 
@@ -45,21 +54,44 @@ public class FileReader {
             try (BufferedReader reader = Files.newBufferedReader(file.toPath(), ch)) {
                 String textLine = null;
                 while ((textLine = reader.readLine()) != null) {
-                    textFile = "" + textLine;
                     performActionOnGUI(textLine);
                 }
             } catch (IOException e) {
-                //todo Show a dialog indicating that the file was not found
-                textFile = "File not found";
+                //File  not found
             }
         }
+    }
 
+
+    /**
+     *
+     * @param directory
+     * @param sourceFile
+     * @return
+     */
+    public String readWholeFile(String directory, String sourceFile) {
+
+        System.out.println("Source File: " + sourceFile);
+        File file = new File(directory + "/" + sourceFile);
+        String textFile = "";
+        setCharset("US-ASCII");
+
+        // Try with resources: The BufferedReader is automatically closed after each read.
+        try (BufferedReader reader = Files.newBufferedReader(file.toPath(), ch)) {
+            String textLine = null;
+            while ((textLine = reader.readLine()) != null) {
+                textFile += textLine;
+            }
+        } catch (IOException e) {
+            //todo Show a dialog indicating that the file was not found
+            textFile = "File not found";
+        }
 
         return textFile;
     }
 
     /**
-     * A convenient methods within the FileReader class. Sets the FileReader charset to the given charset. Otherwise,
+     * A convenient methods within the VectorFileReader class. Sets the VectorFileReader charset to the given charset. Otherwise,
      * the charset is set to "US-ASCII" by default.
      *
      * @param charset - The charset to be used.
@@ -73,16 +105,16 @@ public class FileReader {
     }
 
     /**
-     * A convenient method within the FileReader class. Reads a file given file name and the directory where it is
+     * A convenient method within the VectorFileReader class. Reads a file given file name and the directory where it is
      * located.
      *
      * @param directory name of directory where file is located
      * @param fileName  the name of the file
      * @return
      */
-    public String readFile(String directory, String fileName) {
+    public void readFile(String directory, String fileName) {
         String ch = "US-ASCII";
-        return readFile(directory, fileName, ch);
+        readFile(directory, fileName, ch);
     }
 
     /**
@@ -107,7 +139,7 @@ public class FileReader {
             fillShape = false;
         }
 
-        if (Window.isDrawingCommand(textLine)) {
+        if (VectorImagePlotter.isDrawingCommand(textLine)) {
             if (textLine.contains("PLOT")) {
                 addShapeToCanvas("PLOT", textLine);
             } else if (textLine.contains("LINE")) {

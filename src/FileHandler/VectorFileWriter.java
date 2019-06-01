@@ -1,18 +1,26 @@
+/*
+    Author: Gabriel Garate Zea
+    Student ID: N10023780
+    Unit: CAB302 - Software Development
+    Assignment: Project 2
+    Due Date: 2-June-2019
+    Queensland University of Technology
+    Brisbane, QLD, Australia.
+ */
+
 package FileHandler;
 
-import GUI.Window.*;
-
-import java.awt.*;
 import java.nio.file.*;
 import java.io.*;
-import java.text.DecimalFormat;
-import java.util.ArrayList;
 
 
 import static java.nio.file.StandardOpenOption.APPEND;
 import static java.nio.file.StandardOpenOption.CREATE;
 
-public class FileWriter {
+/**
+ * This class provides all the resources to write into a file.
+ */
+public class VectorFileWriter {
 
     String str;
     byte data[];
@@ -30,4 +38,5 @@ public class FileWriter {
             System.err.println(x);
         }
     }
+
 }
