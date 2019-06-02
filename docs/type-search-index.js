@@ -1,0 +1,1 @@
+typeSearchIndex = [{"l":"All Classes","url":"allclasses-index.html"},{"p":"GUI","l":"Canvas"},{"p":"Listeners","l":"EventsHandler"},{"p":"FileHandler","l":"FileVecFilter"},{"p":"GUI","l":"Main"},{"p":"TestsUnit","l":"Tests"},{"p":"FileHandler","l":"VectorFileReader"},{"p":"FileHandler","l":"VectorFileWriter"},{"p":"GUI","l":"VectorImagePlotter"}]

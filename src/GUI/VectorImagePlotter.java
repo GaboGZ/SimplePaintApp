@@ -25,24 +25,20 @@ public class VectorImagePlotter extends JFrame implements Runnable {
     //Constants
     private static final int MIN_WIDTH = 675;
     private static final int MIN_HEIGHT = 675;
-    public static final Color PANEL_BACKGROUND = Color.WHITE;
-    public static final Color CANVAS_BACKGROUND = Color.GRAY;
+    private static final Color PANEL_BACKGROUND = Color.WHITE;
+    private static final Color CANVAS_BACKGROUND = Color.GRAY;
 
 
-    //Elements
-    public JMenuBar menuBar;
-    public JMenu File;
-    public static JMenuItem New, Open, Save, SaveAs, Exit;
 
-    public static JPanel mainPanel;
-    private JPanel pnlUp, toolsPanel, palettePanel;
-    private JPanel pnlCenter, pnlCenter_Left, pnlCenter_Right, pnlCenter_Up, pnlCenter_Down;
-    private JPanel pnlDown;
+
+    private static JPanel mainPanel;
+    private JPanel toolsPanel;
+    private JPanel palettePanel;
     private static Canvas pnlDisplay;
+    private EventsHandler eventsHandler = new EventsHandler();
 
-    private JToolBar toolBar;
-
-    EventsHandler eventsHandler;
+    //Public Elements and Globals that manage the state of the program
+    public static JMenuItem New, Open, Save, SaveAs, Exit;
     public static JButton plotBtn;
     public static JButton lineBtn;
     public static JButton rectangleBtn;
@@ -57,24 +53,17 @@ public class VectorImagePlotter extends JFrame implements Runnable {
     public static JButton customBtn;
     public static JButton blackBtn, blueBtn, greenBtn, darkGrayBtn, lightGrayBtn;
     public static JButton cyanBtn, redBtn, magentaBtn, whiteBtn, grayBtn, orangeBtn, yellowBtn;
-    public JPanel colorPalette;
 
-    private JFileChooser fileChooser;
-
-    JPanel statusBar;
-    static JLabel coordLabel;
-    public static JLabel commmandSelectedLabel;
-    JLabel zoomLabel;
+    public JPanel statusBar;
+    public static JLabel coordinatesLabel;
+    public static JLabel commandSelectedLabel;
 
     public static String currentAction = "PEN";
     public static JButton currentPenColorBtn;
-    private JLabel currentPenColorLabel;
     public static JCheckBox fillCheckBox;
     public static JLabel checkBoxLabel;
     public static JButton currentFillColorBtn;
-    private JLabel currentFillColorLabel;
 
-    //Globals that manage the state of the program
     public static Color penColor = Color.BLACK;
     public static Color fillColor = Color.WHITE;
     public static boolean penClicked = true;
@@ -96,7 +85,7 @@ public class VectorImagePlotter extends JFrame implements Runnable {
      */
     private void createAndDisplayGUI() {
 
-        this.setDefaultLookAndFeelDecorated(true);
+        setDefaultLookAndFeelDecorated(true);
 
         //Set GUI
         setTitle("CAB302 | Java Project");
@@ -104,7 +93,6 @@ public class VectorImagePlotter extends JFrame implements Runnable {
         this.setPreferredSize(new Dimension(MIN_WIDTH, MIN_HEIGHT));
         this.setMinimumSize(new Dimension(MIN_WIDTH, MIN_HEIGHT));
         setLayout(new BorderLayout());
-        eventsHandler = new EventsHandler();
 
         //Add components
         createMainPanel();      // Main container.
@@ -136,21 +124,21 @@ public class VectorImagePlotter extends JFrame implements Runnable {
     /**
      * Creates all the required child panels
      */
-    public void createChildPanels() {
+    private void createChildPanels() {
         // Upper Panels
-        pnlUp = createPanel(PANEL_BACKGROUND, new GridLayout(2, 1));
+        JPanel pnlUp = createPanel(PANEL_BACKGROUND, new GridLayout(2, 1));
         toolsPanel = createPanel(PANEL_BACKGROUND);
         palettePanel = createPanel(PANEL_BACKGROUND, new FlowLayout());
         pnlUp.add(toolsPanel);
         pnlUp.add(palettePanel);
 
         // Center Panel
-        pnlCenter = createPanel(PANEL_BACKGROUND, new BorderLayout());
+        JPanel pnlCenter = createPanel(PANEL_BACKGROUND, new BorderLayout());
         pnlDisplay = new Canvas(); // Center Panel | Used to draw shapes
-        pnlCenter_Up = createPanel(CANVAS_BACKGROUND);//Surrounds Canvas
-        pnlCenter_Down = createPanel(CANVAS_BACKGROUND);//Surrounds Canvas
-        pnlCenter_Left = createPanel(CANVAS_BACKGROUND);//Surrounds Canvas
-        pnlCenter_Right = createPanel(CANVAS_BACKGROUND);//Surrounds Canvas
+        JPanel pnlCenter_Up = createPanel(CANVAS_BACKGROUND);//Surrounds Canvas
+        JPanel pnlCenter_Down = createPanel(CANVAS_BACKGROUND);//Surrounds Canvas
+        JPanel pnlCenter_Left = createPanel(CANVAS_BACKGROUND);//Surrounds Canvas
+        JPanel pnlCenter_Right = createPanel(CANVAS_BACKGROUND);//Surrounds Canvas
 
         pnlCenter.add(pnlDisplay, BorderLayout.CENTER);
         pnlCenter.add(pnlCenter_Up, BorderLayout.NORTH);
@@ -159,7 +147,7 @@ public class VectorImagePlotter extends JFrame implements Runnable {
         pnlCenter.add(pnlCenter_Right, BorderLayout.EAST);
 
         // Button Panel
-        pnlDown = createStatusBar();
+        JPanel pnlDown = createStatusBar();
 
         //Add child panels to the Main Panel
         mainPanel.add(pnlUp, BorderLayout.NORTH);
@@ -173,19 +161,19 @@ public class VectorImagePlotter extends JFrame implements Runnable {
      */
     private void createMenuBar() {
         //Menu Bar
-        menuBar = new JMenuBar();
+        JMenuBar menuBar = new JMenuBar();
         menuBar.setOpaque(true);
         menuBar.setBackground(Color.WHITE);
         menuBar.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
 
         //File Menu
-        File = new JMenu("File");
-        New = new JMenuItem("New");
-        Open = new JMenuItem("Open");
-        Save = new JMenuItem("Save");
-        SaveAs = new JMenuItem("Save as");
-        Exit = new JMenuItem("Exit");
+        JMenu fileMenu = new JMenu("File");
+        New = new JMenuItem("New (Ctrl+N)");
+        Open = new JMenuItem("Open (Ctrl+O)");
+        Save = new JMenuItem("Save (Ctrl+S)");
+        SaveAs = new JMenuItem("Save as (Ctrl+Shift+S)");
+        Exit = new JMenuItem("Exit (Ctrl+Q)");
 
         New.addActionListener(eventsHandler);
         Open.addActionListener(eventsHandler);
@@ -194,12 +182,12 @@ public class VectorImagePlotter extends JFrame implements Runnable {
         Exit.addActionListener(eventsHandler);
 
         //Add Menu elements to the menu bar
-        menuBar.add(File);
-        File.add(New);
-        File.add(Open);
-        File.add(Save);
-        File.add(SaveAs);
-        File.add(Exit);
+        menuBar.add(fileMenu);
+        fileMenu.add(New);
+        fileMenu.add(Open);
+        fileMenu.add(Save);
+        fileMenu.add(SaveAs);
+        fileMenu.add(Exit);
 
         //Add menu bar to the main window
         this.setJMenuBar(menuBar);
@@ -209,7 +197,7 @@ public class VectorImagePlotter extends JFrame implements Runnable {
      * Creates an instance of JToolbar containing the drawing buttons.
      */
     private void createToolbar() {
-        toolBar = new JToolBar();
+        JToolBar toolBar = new JToolBar();
         toolBar.setLayout(new FlowLayout());
         toolBar.setBorder(BorderFactory.createTitledBorder("Drawing Tools"));
         toolBar.setFloatable(false);    //fixed toolBar
@@ -245,7 +233,6 @@ public class VectorImagePlotter extends JFrame implements Runnable {
         toolBar.add(fillBtn);
         toolBar.add(fillCheckBox);
         toolBar.add(checkBoxLabel);
-//        toolBar.addSeparator();
 
         toolBar.add(plotBtn);
         toolBar.add(lineBtn);
@@ -261,9 +248,9 @@ public class VectorImagePlotter extends JFrame implements Runnable {
     /**
      * Create a palette of basic colors.
      */
-    public void createColorPalette() {
+    private void createColorPalette() {
 
-        colorPalette = createPanel(PANEL_BACKGROUND, new GridLayout(1, 3));
+        JPanel colorPalette = createPanel(PANEL_BACKGROUND, new GridLayout(1, 3));
 
         JPanel pLeft = createPanel(PANEL_BACKGROUND, new GridLayout(2, 1));
         pLeft.setBorder(BorderFactory.createTitledBorder("Current Colors"));
@@ -282,12 +269,12 @@ public class VectorImagePlotter extends JFrame implements Runnable {
 
         currentPenColorBtn = createColorButton(penColor);
         currentPenColorBtn.setEnabled(false);
-        currentPenColorLabel = new JLabel("Pen");
+        JLabel currentPenColorLabel = new JLabel("Pen");
         currentPenColorLabel.setLabelFor(currentPenColorBtn);
 
         currentFillColorBtn = createColorButton(fillColor);
         currentFillColorBtn.setEnabled(false);
-        currentFillColorLabel = new JLabel("Fill");
+        JLabel currentFillColorLabel = new JLabel("Fill");
         currentFillColorLabel.setLabelFor(currentFillColorBtn);
 
         // Colored Buttons
@@ -342,37 +329,34 @@ public class VectorImagePlotter extends JFrame implements Runnable {
     /**
      * Creates the status bar.
      */
-    public JPanel createStatusBar() {
+    private JPanel createStatusBar() {
 
         statusBar = createPanel(PANEL_BACKGROUND, new BorderLayout());
         statusBar.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
 
-        coordLabel = new JLabel();
-        coordLabel.setText("(x,y): (0.0,0.0)     ");
+        coordinatesLabel = new JLabel();
+        coordinatesLabel.setText("(x,y): (0.0,0.0)     ");
 
-        commmandSelectedLabel = new JLabel();
-        commmandSelectedLabel.setText("Current Command: " + getCurrentAction());
-        commmandSelectedLabel.setHorizontalTextPosition(SwingConstants.CENTER);
+        commandSelectedLabel = new JLabel();
+        commandSelectedLabel.setText("Current Command: " + getCurrentAction());
+        commandSelectedLabel.setHorizontalTextPosition(SwingConstants.CENTER);
 
-        zoomLabel = new JLabel();
+        JLabel zoomLabel = new JLabel();
         zoomLabel.setText("Zoom: 100%");
         zoomLabel.setHorizontalTextPosition(SwingConstants.RIGHT);
 
-        statusBar.add(coordLabel, BorderLayout.WEST);
-        statusBar.add(commmandSelectedLabel, BorderLayout.CENTER);
+        statusBar.add(coordinatesLabel, BorderLayout.WEST);
+        statusBar.add(commandSelectedLabel, BorderLayout.CENTER);
         statusBar.add(zoomLabel, BorderLayout.EAST);
 
         return statusBar;
 
     }
 
-    //BEGIN HELPER METHODS | Note: todo Create an interface
-
     /**
      * Creates a standard JPanel and set the background color to the given color.
-     *
-     * @param c
-     * @return
+     * @param c the desired background color for the panel.
+     * @return a JPanel
      */
     private JPanel createPanel(Color c) {
         JPanel panel = new JPanel();
@@ -396,8 +380,7 @@ public class VectorImagePlotter extends JFrame implements Runnable {
 
     /**
      * Create buttons for the color palette
-     *
-     * @param color
+     * @param color The desired color for the button
      * @return a colored button
      */
     private JButton createColorButton(Color color) {
@@ -446,10 +429,10 @@ public class VectorImagePlotter extends JFrame implements Runnable {
     }
 
     /**
-     * Provides an easier way to show a warning message.
-     * @param title
-     * @param message
-     * @return
+     * A convenient method to show a warning message.
+     * @param title The dialog title
+     * @param message the message to be displayed.
+     * @return a Warning message.
      */
     public static int showWarningMessage(String title, String message) {
         Object[] options = {"Ok", "Cancel"};
@@ -465,10 +448,10 @@ public class VectorImagePlotter extends JFrame implements Runnable {
     }
 
     /**
-     * Provides an easier way to display and information message.
-     * @param title
-     * @param message
-     * @return
+     * A convenient method to show an information message.
+     * @param title The dialog title
+     * @param message the message to be displayed.
+     * @return an information message.
      */
     public static int showInformationMessage(String title, String message) {
         Object[] options = {"OK"};
@@ -486,7 +469,6 @@ public class VectorImagePlotter extends JFrame implements Runnable {
     /**
      * Sets the color of the pen if an only the Pen Button has been clicked. Otherwise, leaves
      * the pen color as it is.
-     *
      * @param colorButtonClicked The color button that triggered the event.
      * @return pc Color of the pen.
      */
@@ -507,7 +489,6 @@ public class VectorImagePlotter extends JFrame implements Runnable {
     /**
      * Sets the color of the fill if an only the Fill Button has been clicked. Otherwise, leaves
      * the fill color as it is.
-     *
      * @param colorButtonClicked The color button that triggered the event.
      * @return fc - Color of the fill.
      */
@@ -527,7 +508,7 @@ public class VectorImagePlotter extends JFrame implements Runnable {
 
     /**
      * Returns the current action command.
-     * @return
+     * @return the current action command.
      */
     public static String getCurrentAction() {
         return currentAction;
@@ -535,21 +516,15 @@ public class VectorImagePlotter extends JFrame implements Runnable {
 
     /**
      * Returns true if the current command is either "PLOT","LINE","RECTANGLE","ELLIPSE" or "POLYGON"
-     *
-     * @param action
+     * @param action an action command.
      * @return boolean - true or false
      */
     public static boolean isDrawingCommand(String action) {
-        if (action.contains("PLOT") || action.contains("LINE") || action.contains("ELLIPSE") || action.contains("RECTANGLE") || action.contains("POLYGON")) {
-            return true;
-        } else {
-            return false;
-        }
+        return action.contains("PLOT") || action.contains("LINE") || action.contains("ELLIPSE") || action.contains("RECTANGLE") || action.contains("POLYGON");
     }
 
     /**
      * Gets the current pen color
-     *
      * @return Color - the current Pen color
      */
     public static Color getCurrentPenColor() {
@@ -558,7 +533,6 @@ public class VectorImagePlotter extends JFrame implements Runnable {
 
     /**
      * Gets the current fill color
-     *
      * @return Color - the current fill color
      */
     public static Color getCurrentFillColor() {
@@ -567,10 +541,14 @@ public class VectorImagePlotter extends JFrame implements Runnable {
 
     /**
      * Return the panel containing the display Canvas.
-     * @return
+     * @return the display panel
      */
     public static Canvas getDisplayPanel() {
         return pnlDisplay;
+    }
+
+    public static JPanel getMainPanel(){
+        return mainPanel;
     }
 
 }

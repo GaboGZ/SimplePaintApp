@@ -33,8 +33,8 @@ public class Canvas extends JComponent {
     private static final double canvasH_ini = 389.0;
     private static double canvasW_current;
     private static double canvasH_current;
-    private static double ratioW;
-    private static double ratioH;
+    private static double ratioW; //for resizing purposes.
+    private static double ratioH; //for resizing purposes.
 
     // Arraylists that store shapes information:
     //  shapes: stores Shape form either PLOT, LINE, RECTANGLE or POLYGON
@@ -82,8 +82,9 @@ public class Canvas extends JComponent {
 
         setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 
-        //todo: Resizing images | Issue: Images not renderwing well.
-        //Uncomment this section to test the resizing of images.
+        //todo: Resizing images | Issue: Images not rendering well after
+        // being resized.
+        // Uncomment this section to test the resizing of images if you wish.
 //        this.addComponentListener(new ComponentAdapter() {
 //            @Override
 //            public void componentResized(ComponentEvent e) {
@@ -141,28 +142,22 @@ public class Canvas extends JComponent {
 //
 //                repaint();
 //            }
-//        });// End Component Adapart
+//        });// End Component Adapter
 
         this.addMouseListener(new MouseAdapter() {
 
-            /**
-             * Gets coordinates when mouse is pressed.
-             * @param e MouseEvent
-             */
+            //Gets coordinates when mouse is pressed.
             public void mousePressed(MouseEvent e) {
 //                System.out.println("Width: " + canvasW_ini);
 //                System.out.println("Height: " + canvasH_ini);
                 drawStart = new Point(e.getX(), e.getY());
                 drawEnd = drawStart;
+                coordinatesLabel.setText("(x,y): " + "(" + drawEnd.x + "," + drawEnd.y + ")     ");
                 mousePressed = true;
-                getMouseCoordinates();
                 repaint();
             }
 
-            /**
-             * Gets coordinates when mouse is released.
-             * @param e
-             */
+            //Gets coordinates when mouse is released.
             public void mouseReleased(MouseEvent e) {
 
 //                canvasW_ini = getSize().getWidth();
@@ -171,6 +166,7 @@ public class Canvas extends JComponent {
                 canvasH_current = getHeight();
 
                 drawEnd = new Point(e.getX(), e.getY());
+                coordinatesLabel.setText("(x,y): " + "(" + drawEnd.x + "," + drawEnd.y + ")     ");
 
                 // Creates a shape based on the current n command
                 Shape s = null;
@@ -307,7 +303,6 @@ public class Canvas extends JComponent {
 
                 mousePressed = false;
                 polygonClosed = false;
-                getMouseCoordinates();
                 drawStart = null;
                 drawEnd = null;
 
@@ -315,13 +310,12 @@ public class Canvas extends JComponent {
             }
         }); // End mouseReleased();
 
-        /**
-         * Gets coordinates when mouse is dragged.
-         */
+
+        // Gets coordinates when mouse is dragged.
         this.addMouseMotionListener(new MouseMotionAdapter() {
             public void mouseDragged(MouseEvent e) {
                 drawEnd = new Point(e.getX(), e.getY());
-                VectorImagePlotter.coordLabel.setText("(x,y): " + "(" + drawEnd.x + "," + drawEnd.y + ")     ");
+                coordinatesLabel.setText("(x,y): " + "(" + drawEnd.x + "," + drawEnd.y + ")     ");
                 repaint();
             }
         });
@@ -372,27 +366,7 @@ public class Canvas extends JComponent {
     }
 
     /**
-     * Detects and set the coordinates label on the window to the detected coordinates.
-     */
-    public void getMouseCoordinates() {
-
-        // Detected when mouse is pressed
-        int x1 = drawStart.x;
-        int y1 = drawStart.y;
-
-        // Detected when mouse is released
-        int x2 = drawEnd.x;
-        int y2 = drawEnd.y;
-
-        if (mousePressed) {
-            VectorImagePlotter.coordLabel.setText("(x,y): " + "(" + x1 + "," + y1 + ")     ");
-        } else {
-            VectorImagePlotter.coordLabel.setText("(x,y): " + "(" + x2 + "," + y2 + ")     ");
-        }
-    }
-
-    /**
-     * This is the may method to help drawing and rendering shapes on the canvas.
+     * This is the main method to help drawing and rendering shapes on the canvas.
      * @param g
      */
     public void paint(Graphics g) {
@@ -476,7 +450,7 @@ public class Canvas extends JComponent {
      * @param y1 coordinate.
      * @param x2 coordinate.
      * @param y2 coordinate.
-     * @return
+     * @return a Rectangle2D.Double
      */
     private Rectangle2D.Double drawRectangle(double x1, double y1, double x2, double y2) {
         double x = Math.min(x1, x2);
@@ -492,7 +466,7 @@ public class Canvas extends JComponent {
      * @param y1 coordinate.
      * @param x2 coordinate.
      * @param y2 coordinate.
-     * @return
+     * @return a Ellipse2D.Double
      */
     private Ellipse2D.Double drawEllipse(double x1, double y1, double x2, double y2) {
         double x = Math.min(x1, x2);
@@ -508,7 +482,7 @@ public class Canvas extends JComponent {
      * @param y1 coordinate.
      * @param x2 coordinate.
      * @param y2 coordinate.
-     * @return
+     * @return a Line2D.Double
      */
     private Line2D.Double drawLine(double x1, double y1, double x2, double y2) {
         return new Line2D.Double(x1, y1, x2, y2);
@@ -522,7 +496,7 @@ public class Canvas extends JComponent {
      * @param y1 coordinate.
      * @param x2 a dummy coordinate. This parameter will be ignored.
      * @param y2 a dummy coordinate. This parameter will be ignored.
-     * @return
+     * @return a Line2D.Double of width 0.
      */
     private Line2D.Double drawPlot(double x1, double y1, double x2, double y2) {
         return new Line2D.Double(x1, y1, x1, y1);
@@ -550,7 +524,7 @@ public class Canvas extends JComponent {
      * @param y1
      * @param x2
      * @param y2
-     * @return
+     * @return the given coordinates rounded to 5 digits.
      */
     public ArrayList<Double> roundCoordinates(double x1, double y1, double x2, double y2) {
         ArrayList<Double> roundedCoordinates = new ArrayList<>();

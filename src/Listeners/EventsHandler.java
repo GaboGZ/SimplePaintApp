@@ -55,42 +55,57 @@ public class EventsHandler extends MouseAdapter implements ActionListener, ItemL
                 showInformationMessage("Undo", "There are no drawings to undo");
             }
         }
-        if ((key == KeyEvent.VK_Z) && ((mod & CTRL_DOWN_MASK) != 0) && ((mod & SHIFT_DOWN_MASK) != 0)) {
+        else if ((key == KeyEvent.VK_Z) && ((mod & CTRL_DOWN_MASK) != 0) && ((mod & SHIFT_DOWN_MASK) != 0)) {
             try {
                 getDisplayPanel().redo();
             } catch (Exception ex) {
                 showInformationMessage("Redo", "There are no drawings to redo");
             }
         }
-        if ((key == KeyEvent.VK_PERIOD) && ((mod & CTRL_DOWN_MASK) != 0)) {
+        else if ((key == KeyEvent.VK_PERIOD) && ((mod & CTRL_DOWN_MASK) != 0)) {
             plotBtn.doClick();
         }
-        if ((key == KeyEvent.VK_L) && ((mod & CTRL_DOWN_MASK) != 0)) {
+        else if ((key == KeyEvent.VK_L) && ((mod & CTRL_DOWN_MASK) != 0)) {
             lineBtn.doClick();
         }
-        if ((key == KeyEvent.VK_R) && ((mod & CTRL_DOWN_MASK) != 0)) {
+        else if ((key == KeyEvent.VK_R) && ((mod & CTRL_DOWN_MASK) != 0)) {
             rectangleBtn.doClick();
         }
-        if ((key == KeyEvent.VK_E) && ((mod & CTRL_DOWN_MASK) != 0)) {
+        else if ((key == KeyEvent.VK_E) && ((mod & CTRL_DOWN_MASK) != 0)) {
             ellipseBtn.doClick();
         }
-        if ((key == KeyEvent.VK_P) && ((mod & CTRL_DOWN_MASK) != 0)) {
+        else if ((key == KeyEvent.VK_P) && ((mod & CTRL_DOWN_MASK) != 0)) {
             polygonBtn.doClick();
         }
-        if ((key == KeyEvent.VK_F) && ((mod & CTRL_DOWN_MASK) != 0) && ((mod & SHIFT_DOWN_MASK) == 0)) {
+        else if ((key == KeyEvent.VK_F) && ((mod & CTRL_DOWN_MASK) != 0) && ((mod & SHIFT_DOWN_MASK) == 0)) {
             fillBtn.doClick();
         }
-        if ((key == KeyEvent.VK_F) && ((mod & CTRL_DOWN_MASK) != 0) && ((mod & SHIFT_DOWN_MASK) != 0)) {
+        else if ((key == KeyEvent.VK_F) && ((mod & CTRL_DOWN_MASK) != 0) && ((mod & SHIFT_DOWN_MASK) != 0)) {
             fillCheckBox.doClick();
         }
-        if ((key == KeyEvent.VK_D) && ((mod & CTRL_DOWN_MASK) != 0)) {
+        else if ((key == KeyEvent.VK_D) && ((mod & CTRL_DOWN_MASK) != 0)) {
             penBtn.doClick();
         }
-        if ((key == KeyEvent.VK_DELETE) && ((mod & CTRL_DOWN_MASK) != 0)) {
+        else if ((key == KeyEvent.VK_DELETE) && ((mod & CTRL_DOWN_MASK) != 0)) {
             clearBtn.doClick();
         }
-        if ((key == KeyEvent.VK_C) && ((mod & CTRL_DOWN_MASK) != 0) && ((mod & SHIFT_DOWN_MASK) != 0)) {
+        else  if ((key == KeyEvent.VK_C) && ((mod & CTRL_DOWN_MASK) != 0) && ((mod & SHIFT_DOWN_MASK) == 0)) {
             customBtn.doClick();
+        }
+        else if ((key == KeyEvent.VK_N) && ((mod & CTRL_DOWN_MASK) != 0) && ((mod & SHIFT_DOWN_MASK) == 0)){
+            New.doClick();
+        }
+        else if((key == KeyEvent.VK_O) && ((mod & CTRL_DOWN_MASK) != 0) && ((mod & SHIFT_DOWN_MASK) == 0)){
+            Open.doClick();
+        }
+        else if((key == KeyEvent.VK_S) && ((mod & CTRL_DOWN_MASK) != 0) && ((mod & SHIFT_DOWN_MASK) == 0)){
+            Save.doClick();
+        }
+        else if((key == KeyEvent.VK_S) && ((mod & CTRL_DOWN_MASK) != 0) && ((mod & SHIFT_DOWN_MASK) != 0)){
+            SaveAs.doClick();
+        }
+        else if((key == KeyEvent.VK_Q) && ((mod & CTRL_DOWN_MASK) != 0) && ((mod & SHIFT_DOWN_MASK) == 0)){
+            Exit.doClick();
         }
 
     }
@@ -108,7 +123,7 @@ public class EventsHandler extends MouseAdapter implements ActionListener, ItemL
 
             if (isDrawingCommand(((JButton) src).getActionCommand())) {
                 currentAction = ((JButton) src).getActionCommand();
-                commmandSelectedLabel.setText("Command: " + getCurrentAction());
+                commandSelectedLabel.setText("Command: " + getCurrentAction());
             }
 
             // Detecting color button events
@@ -154,7 +169,7 @@ public class EventsHandler extends MouseAdapter implements ActionListener, ItemL
             // Detecting tools events
             if (src == customBtn) {
                 // Display JColorChooser
-                Color newColor = JColorChooser.showDialog(mainPanel, "Pick a color", mainPanel.getBackground());
+                Color newColor = JColorChooser.showDialog(getMainPanel(), "Pick a color", getMainPanel().getBackground());
 
                 // if a color is picked newColor is set to the picked color otherwise is set to null.
                 if (newColor != null) {
@@ -328,9 +343,13 @@ public class EventsHandler extends MouseAdapter implements ActionListener, ItemL
                 }
             } else if (src == Exit) {
 
-                //Clear temporary file for future use.
-                clearTempFile();
-                System.exit(0);
+                if(getDisplayPanel().clearDrawings(false)){
+                    //Clear temporary file for future use.
+                    clearTempFile();
+                    System.exit(0);
+                }else{
+                    //do nothing
+                }
             }
         } catch (ClassCastException e2) {
 //            e1.printStackTrace();

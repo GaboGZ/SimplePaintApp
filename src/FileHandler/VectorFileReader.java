@@ -261,7 +261,7 @@ public class VectorFileReader {
      * @param command  a Drawing command.
      * @param textLine the current line of text.
      */
-    public void addShapeToCanvas(String command, String textLine) {
+    private void addShapeToCanvas(String command, String textLine) {
 
         double x1, x2, y1, y2;
 
