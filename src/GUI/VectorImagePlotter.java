@@ -551,4 +551,7 @@ public class VectorImagePlotter extends JFrame implements Runnable {
         return mainPanel;
     }
 
+
+
+
 }

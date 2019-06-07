@@ -105,7 +105,7 @@ public class VectorFileReader {
     }
 
     /**
-     * A convenient method within the VectorFileReader class. Reads a file given file name and the directory where it is
+     * A convenient method within the VectorFileReader class. Reads a file given a file name and the directory where it is
      * located.
      *
      * @param directory name of directory where file is located
@@ -295,8 +295,7 @@ public class VectorFileReader {
                     y_points.add(coordinates.get(i));
                 }
             }
-
-
+            
             int capacity = coordinates.size() / 2;
             int[] xPoints_arr = new int[capacity];
             int[] yPoints_arr = new int[capacity];

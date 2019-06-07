@@ -20,6 +20,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -31,8 +32,8 @@ import static java.awt.event.InputEvent.*;
 public class EventsHandler extends MouseAdapter implements ActionListener, ItemListener, KeyListener {
 
     private File newfile;
-    private Path tempFile;
     private String newFileDirectory;
+    private String tempFile_str = "C:/cab302/project/files/temp.vec";
 
     @Override
     public void keyTyped(KeyEvent e) {
@@ -243,17 +244,24 @@ public class EventsHandler extends MouseAdapter implements ActionListener, ItemL
                     // Open a file and store its name and directory location
                     String directory = fc.getCurrentDirectory().toString();
                     File loaded = fc.getSelectedFile();
+                    // Read the file content so that it can be displayed on the canvas.
                     VectorFileReader fr = new VectorFileReader();
                     fr.readFile(directory, loaded.getName());
 
-                    // Copy the content of the loaded file into the temporary file.
                     try{
                         // Copy loaded file content into the temp file for editing.
-                        tempFile = Paths.get("C:/cab302/project/files/temp.vec");
+                        Path tempFile = Paths.get(tempFile_str);
                         Path loadedFile = Paths.get(directory, loaded.getName());
-                        // .copy(source,target);
                         Files.copy(loadedFile,tempFile, StandardCopyOption.REPLACE_EXISTING);
+
+                        //
                         Desktop.getDesktop().open(tempFile.toFile());
+                        Desktop.getDesktop().open(loadedFile.toFile());
+
+                        newfile = loadedFile.toFile();
+
+                        // Set window title to the loaded file
+                        setWindowTitle(loaded.getName());
                     }catch(Exception ex){ }
                 }
 
@@ -272,8 +280,8 @@ public class EventsHandler extends MouseAdapter implements ActionListener, ItemL
                         newfile = fc.getSelectedFile();
                         newFileDirectory = fc.getCurrentDirectory().toString();
 
-                        VectorImagePlotter.getFrames()[0].setTitle("CAB302 | " + newfile.getName());
-
+                        //Change the title of the window once the file is created.
+                        setWindowTitle(newfile.getName());
 
                         if (newfile == null) {
                             return;
@@ -302,10 +310,13 @@ public class EventsHandler extends MouseAdapter implements ActionListener, ItemL
                     if(newfile != null){
 
                         // Copy the content of the temporary file into the user new file.
-                        tempFile = Paths.get("C:/cab302/project/files/temp.vec");
-                        Path targetFile = Paths.get(newFileDirectory, newfile.getName());
-                        Files.copy(tempFile, targetFile, StandardCopyOption.REPLACE_EXISTING);
-                        Desktop.getDesktop().open(newfile);
+                        Path sourceFile = Paths.get(tempFile_str);
+                        Path target = Paths.get(newfile.getName());
+                        Files.copy(sourceFile, target, StandardCopyOption.REPLACE_EXISTING);
+
+                       //
+                        Desktop.getDesktop().open(sourceFile.toFile());
+                        Desktop.getDesktop().open(target.toFile());
 
                     }else{
                         System.out.println("Creating a new file.");
@@ -332,9 +343,9 @@ public class EventsHandler extends MouseAdapter implements ActionListener, ItemL
                     try {
 
                         // Copy the content of the temporary file into the user file.
-                        Path tempFile = Paths.get("C:/cab302/project/files/temp.vec");
+                        Path sourceFile = Paths.get(tempFile_str);
                         Path targetFile = Paths.get(directory, file.getName());
-                        Files.copy(tempFile, targetFile, StandardCopyOption.REPLACE_EXISTING);
+                        Files.copy(sourceFile, targetFile, StandardCopyOption.REPLACE_EXISTING);
                         Desktop.getDesktop().open(file);
 
                     } catch (Exception e2) {
@@ -376,8 +387,9 @@ public class EventsHandler extends MouseAdapter implements ActionListener, ItemL
         fillCheckBox.doClick();
     }
 
-    public void clearTempFile() {
-        Path tempFile = Paths.get("C:/cab302/project/files/temp.vec");
+
+    private void clearTempFile() {
+        Path tempFile = Paths.get(tempFile_str);
         try {
             PrintWriter writer = null;
             writer = new PrintWriter(tempFile.toFile());
@@ -386,6 +398,10 @@ public class EventsHandler extends MouseAdapter implements ActionListener, ItemL
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
+    }
+
+    private void setWindowTitle(String fileName){
+        VectorImagePlotter.getFrames()[0].setTitle("CAB302 | Java Vector Image Plotter | " + fileName);
     }
 
 }
