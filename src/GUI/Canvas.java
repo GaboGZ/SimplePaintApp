@@ -129,7 +129,7 @@ public class Canvas extends JComponent {
 //                        double y1 = s.getBounds2D().getY() * ratioH;
 //                        double y2 = s.getBounds2D().getHeight() * ratioH;
 ////                        }
-//                        Shape resizedShape = drawShape(command, x1, y1, x2, y2);
+//                        Shape resizedShape = createShape(command, x1, y1, x2, y2);
 //                        resizedShapes.add(resizedShape);
 //                    }
 //                }
@@ -183,7 +183,7 @@ public class Canvas extends JComponent {
                             //Tracking the initial number of shapes before drawing a polygon
                             initialNumberOfShapes = shapes.size();
 
-                            s = drawShape("LINE", drawStart.x, drawStart.y, drawEnd.x, drawEnd.y);
+                            s = createShape("LINE", drawStart.x, drawStart.y, drawEnd.x, drawEnd.y);
                             newPolygon = false;
 
                         } else if (!newPolygon) { // If no, start the line from the last x,y point.
@@ -193,7 +193,7 @@ public class Canvas extends JComponent {
                             drawStart.y = points.get(points.size() - 1).y;
 
                             // Draw line from the last x,y coordinates
-                            s = drawShape("LINE", drawStart.x, drawStart.y, drawEnd.x, drawEnd.y);
+                            s = createShape("LINE", drawStart.x, drawStart.y, drawEnd.x, drawEnd.y);
 
                             // Detect if user intends to close the polygon
                             int first_x = points.get(0).x;
@@ -214,7 +214,7 @@ public class Canvas extends JComponent {
                     } else {
                         // Get the shape to be added to the canvas
                         // It is either PLOT, ELLIPSE, LINE or RECTANGLE
-                        s = drawShape(command, drawStart.x, drawStart.y, drawEnd.x, drawEnd.y);
+                        s = createShape(command, drawStart.x, drawStart.y, drawEnd.x, drawEnd.y);
                     }
 
                     // Add shape to array lists so that it can be displayed
@@ -247,7 +247,7 @@ public class Canvas extends JComponent {
                             shapeFilled.remove(i);
                         }
 
-                        //Prepare points to be passed to drawPolygon(int[] x1, int[] y1, points);
+                        //Prepare points to be passed to createPolygon(int[] x1, int[] y1, points);
                         // based on the line coordinates.
                         for (int i = 0; i < points.size(); i++) {
                             if (i == points.size() - 1) {
@@ -270,7 +270,7 @@ public class Canvas extends JComponent {
                         }
 
                         // Get a polygon
-                        s = drawPolygon(xpoints_arr, ypoints_arr, xpoints_arr.length);
+                        s = createPolygon(xpoints_arr, ypoints_arr, xpoints_arr.length);
 
                         // Add polygon to array lists so that it can be displayed.
                         shapes.add(s);
@@ -406,15 +406,17 @@ public class Canvas extends JComponent {
             // Create new shape based on current command
             if (getCurrentAction() == "POLYGON") {
                 if (newPolygon) {
-                    shape = drawShape("LINE", drawStart.x, drawStart.y, drawEnd.x, drawEnd.y);
+                    // start drawing from anywhere the user wants to
+                    shape = createShape("LINE", drawStart.x, drawStart.y, drawEnd.x, drawEnd.y);
                 } else {
+                    // Start drawing from the last x,y point.
                     drawStart.x = points.get(points.size() - 1).x;
                     drawStart.y = points.get(points.size() - 1).y;
-                    shape = drawShape("LINE", drawStart.x, drawStart.y, drawEnd.x, drawEnd.y);
+                    shape = createShape("LINE", drawStart.x, drawStart.y, drawEnd.x, drawEnd.y);
                 }
 
             } else {
-                shape = drawShape(getCurrentAction(), drawStart.x, drawStart.y, drawEnd.x, drawEnd.y);
+                shape = createShape(getCurrentAction(), drawStart.x, drawStart.y, drawEnd.x, drawEnd.y);
             }
             g2.draw(shape);
         }
@@ -426,20 +428,20 @@ public class Canvas extends JComponent {
      * @param action Drawing command
      * @return Shape to be drawn
      */
-    public Shape drawShape(String action, double x1, double y1, double x2, double y2) {
+    public Shape createShape(String action, double x1, double y1, double x2, double y2) {
 
         // return the guide shape if none command is selected.
-        Shape s = drawRectangle(x1, y1, x2, y2);
+        Shape s = createRectangle(x1, y1, x2, y2);
 
         //return a shape if any drawing command is selected.
         if (action == "LINE") {
-            s = drawLine(x1, y1, x2, y2);
+            s = createLine(x1, y1, x2, y2);
         } else if (action == "ELLIPSE") {
-            s = drawEllipse(x1, y1, x2, y2);
+            s = createEllipse(x1, y1, x2, y2);
         } else if (action == "PLOT") {
-            s = drawPlot(x1, y1, x2, y2);
+            s = createPlot(x1, y1, x2, y2);
         } else if (action == "RECTANGLE") {
-            s = drawRectangle(x1, y1, x2, y2);
+            s = createRectangle(x1, y1, x2, y2);
         }
         return s;
     }
@@ -452,7 +454,7 @@ public class Canvas extends JComponent {
      * @param y2 coordinate.
      * @return a Rectangle2D.Double
      */
-    private Rectangle2D.Double drawRectangle(double x1, double y1, double x2, double y2) {
+    private Rectangle2D.Double createRectangle(double x1, double y1, double x2, double y2) {
         double x = Math.min(x1, x2);
         double y = Math.min(y1, y2);
         double width = Math.abs(x1 - x2);
@@ -468,7 +470,7 @@ public class Canvas extends JComponent {
      * @param y2 coordinate.
      * @return a Ellipse2D.Double
      */
-    private Ellipse2D.Double drawEllipse(double x1, double y1, double x2, double y2) {
+    private Ellipse2D.Double createEllipse(double x1, double y1, double x2, double y2) {
         double x = Math.min(x1, x2);
         double y = Math.min(y1, y2);
         double width = Math.abs(x1 - x2);
@@ -484,21 +486,21 @@ public class Canvas extends JComponent {
      * @param y2 coordinate.
      * @return a Line2D.Double
      */
-    private Line2D.Double drawLine(double x1, double y1, double x2, double y2) {
+    private Line2D.Double createLine(double x1, double y1, double x2, double y2) {
         return new Line2D.Double(x1, y1, x2, y2);
     }
 
     /**
      * This methods returns a Line2D.Double representing a plot.
      * Only the parameters x1 and y1 are used. The two other parameters are dummies
-     * to help the method drawShape(String action, double x1, double y1, double x2, double y2);
+     * to help the method createShape(String action, double x1, double y1, double x2, double y2);
      * @param x1 coordinate.
      * @param y1 coordinate.
      * @param x2 a dummy coordinate. This parameter will be ignored.
      * @param y2 a dummy coordinate. This parameter will be ignored.
      * @return a Line2D.Double of width 0.
      */
-    private Line2D.Double drawPlot(double x1, double y1, double x2, double y2) {
+    private Line2D.Double createPlot(double x1, double y1, double x2, double y2) {
         return new Line2D.Double(x1, y1, x1, y1);
     }
 
@@ -509,7 +511,7 @@ public class Canvas extends JComponent {
      * @param sides
      * @return a Polygon
      */
-    public Polygon drawPolygon(int[] xPoints, int[] yPoints, int sides) {
+    public Polygon createPolygon(int[] xPoints, int[] yPoints, int sides) {
         Polygon p = new Polygon();
         p.xpoints = xPoints;
         p.ypoints = yPoints;
@@ -669,7 +671,7 @@ public class Canvas extends JComponent {
         return "#" + rgb.substring(2).toUpperCase();
     }
 
-    /**
+    /** This method return the index of the most recent shape drawn on the canvas.
      * @return
      */
     private int getLastDrawingIndex(ArrayList arr) {

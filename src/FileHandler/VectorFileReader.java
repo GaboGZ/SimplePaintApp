@@ -281,7 +281,7 @@ public class VectorFileReader {
             x2 = x1;
             y2 = y1;
             //(5) Do drawing by adding necessary elements to the canvas.
-            canvas.shapes.add(canvas.drawShape(command, x1, y1, x2, y2));
+            canvas.shapes.add(canvas.createShape(command, x1, y1, x2, y2));
         } else if (command == "POLYGON") {
 
             ArrayList x_points = new ArrayList();
@@ -307,7 +307,7 @@ public class VectorFileReader {
                 yPoints_arr[i] = (int) ((double)y_points.get(i)*canvas.getHeight());
             }
 
-            canvas.shapes.add(canvas.drawPolygon(xPoints_arr, yPoints_arr, xPoints_arr.length));
+            canvas.shapes.add(canvas.createPolygon(xPoints_arr, yPoints_arr, xPoints_arr.length));
 
         } else { //PLOT, LINE, RECTANGLE
             x1 = coordinates.get(0) * canvas.getWidth();
@@ -315,7 +315,7 @@ public class VectorFileReader {
             x2 = coordinates.get(2) * canvas.getWidth();
             y2 = coordinates.get(3) * canvas.getHeight();
             //(5) Do drawing by adding necessary elements to the canvas.
-            canvas.shapes.add(canvas.drawShape(command, x1, y1, x2, y2));
+            canvas.shapes.add(canvas.createShape(command, x1, y1, x2, y2));
         }
 
     }
