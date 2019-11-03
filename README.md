@@ -32,8 +32,8 @@ TODO: Write credits
 TODO: Write license
 
 ## Current Identified bugs
-(1) When a new file is created and saved. After drawing some shapes, the UNDO feature does not undo the last written
+1. When a new file is created and saved. After drawing some shapes, the UNDO feature does not undo the last written
     text command on the saved file.
-(2) PEN command appearing on saved files is not consistent.
-(3) Status bar does not display current information.
+2. PEN command appearing on saved files is not consistent.
+3. Status bar does not display current information.
 
